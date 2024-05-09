@@ -29,7 +29,7 @@ public class ChatServiceImpl implements ChatService{
 
     @Override
     public MemberSetting findMemberSetting(Long id) {
-        return memberSettingRepository.findById(new MemberSettingId(id)).get();
+        return memberSettingRepository.findById(id).get();
     }
 
     @Override
@@ -91,7 +91,7 @@ public class ChatServiceImpl implements ChatService{
                 .sendTime(LocalDateTime.now())
                 .messageContent(cmr.getMessageContent())
                 .build();
-        MemberSetting memberSetting = memberSettingRepository.findById(new MemberSettingId(sender.getUserPk())).get();
+        MemberSetting memberSetting = memberSettingRepository.findById(sender.getUserPk()).get();
         sendMessage = chattingMessageRepository.save(sendMessage);
         ChattingMessageResponseDTO result = new ChattingMessageResponseDTO(sendMessage);
         result.setNickname(memberSetting.getNickname());
@@ -110,8 +110,7 @@ public class ChatServiceImpl implements ChatService{
     public Member makeMemberTest(Member member, MemberSetting memberSetting){
         Member member1 = memberRepository.save(member);
         log.info("memberid = {}", member1.getUserPk());
-        memberSetting = memberSetting.builder()
-                .MemberId(new MemberSettingId(member1.getUserPk()))
+        memberSetting = new MemberSetting.builder()
                 .nickname("testNick")
                 .member(member1)
                 .build();
