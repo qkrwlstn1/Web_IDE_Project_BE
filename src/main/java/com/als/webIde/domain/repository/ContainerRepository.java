@@ -9,5 +9,5 @@ import java.util.Optional;
 @Repository
 public interface ContainerRepository extends JpaRepository<Container,Long> {
 
-    Container findByMemberUserPk(Long userPk);
+    Long findByMemberUserPk(Long userPk);
 }

@@ -1,7 +1,9 @@
 package com.als.webIde.controller;
 
-import com.als.webIde.domain.repository.ContainerRepository;
-import com.als.webIde.domain.repository.FileRepository;
+import com.als.webIde.DTO.global.ResponseDto;
+import com.als.webIde.DTO.response.FileListResponseDto;
+import com.als.webIde.domain.entity.Member;
+import com.als.webIde.service.ContainerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -15,16 +17,22 @@ import java.io.*;
 @RequiredArgsConstructor
 public class ContainerController {
 
-    private final ContainerRepository containerRepository;
-    private final FileRepository fileRepository;
+    private final ContainerService containerService;
 
     @Value("${COMPILER_CONTAINER_NAME:compiler}")
     private String compilerContainerName;
 
-    //화면 Read
+    //FileList갱신
     @GetMapping
-    public void IDEMain(){
-        System.out.println("호출 성공");
+    public ResponseDto<FileListResponseDto> getFileList(Member member){
+        return containerService.getFileList(member.getUserPk());
+    }
+
+    //선택한 파일 불러오기
+    @GetMapping("/{id}")
+    public void getCode(@RequestParam long fileid){
+
+
     }
 
     @PostMapping("/execute")

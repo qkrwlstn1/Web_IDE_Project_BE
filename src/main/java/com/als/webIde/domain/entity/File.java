@@ -1,9 +1,10 @@
 package com.als.webIde.domain.entity;
 
 import jakarta.persistence.*;
-
+import lombok.Getter;
 
 @Entity
+@Getter
 @Table(name = "file")
 public class File {
     @Id
