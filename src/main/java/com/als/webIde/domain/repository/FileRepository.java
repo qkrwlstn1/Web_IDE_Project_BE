@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface FileRepository extends JpaRepository<File, Long> {
     List<File> findAllByContainerPk(Long containerPk);
+    File findByFilePk(Long filePk);
 }

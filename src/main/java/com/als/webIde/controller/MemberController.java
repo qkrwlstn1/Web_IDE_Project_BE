@@ -64,7 +64,7 @@ public class MemberController {
         Member member = memberRepositpory.save(saveUser);
         log.info("유저은 : {}",saveUser.getUserId());
         //MemberSettingId memberSettingId = new MemberSettingId(member.getUserPk());
-        MemberSetting saveUserSetting = new MemberSetting.builder()
+        MemberSetting saveUserSetting = MemberSetting.builder()
                 .member(member)
                 .nickname(userInfo.getNickname()).build();
         log.info("유저의 세팅은 : {}",saveUserSetting.getMemberId());

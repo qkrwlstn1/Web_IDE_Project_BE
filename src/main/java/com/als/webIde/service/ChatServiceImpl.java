@@ -110,7 +110,7 @@ public class ChatServiceImpl implements ChatService{
     public Member makeMemberTest(Member member, MemberSetting memberSetting){
         Member member1 = memberRepository.save(member);
         log.info("memberid = {}", member1.getUserPk());
-        memberSetting = new MemberSetting.builder()
+        memberSetting = MemberSetting.builder()
                 .nickname("testNick")
                 .member(member1)
                 .build();

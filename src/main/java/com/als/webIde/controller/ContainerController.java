@@ -1,6 +1,7 @@
 package com.als.webIde.controller;
 
 import com.als.webIde.DTO.global.ResponseDto;
+import com.als.webIde.DTO.response.CodeResponseDto;
 import com.als.webIde.DTO.response.FileListResponseDto;
 import com.als.webIde.domain.entity.Member;
 import com.als.webIde.service.ContainerService;
@@ -30,8 +31,8 @@ public class ContainerController {
 
     //선택한 파일 불러오기
     @GetMapping("/{id}")
-    public void getCode(@RequestParam long fileid){
-
+    public ResponseDto<CodeResponseDto> getCode(@RequestParam long fileid, Member member){
+        return containerService.getCode(fileid);
 
     }
 
