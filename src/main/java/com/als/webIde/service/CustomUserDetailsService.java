@@ -1,9 +1,13 @@
 package com.als.webIde.service;
 
 import com.als.webIde.DTO.etc.CustomUserDetails;
+import com.als.webIde.DTO.etc.UserInfoDetails;
 import com.als.webIde.DTO.request.UserLogin;
 import com.als.webIde.domain.entity.Member;
+import com.als.webIde.domain.entity.MemberSetting;
+import com.als.webIde.domain.entity.MemberSettingId;
 import com.als.webIde.domain.repository.MemberRepositpory;
+import com.als.webIde.domain.repository.MemberSettingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -21,15 +25,23 @@ import java.util.EmptyStackException;
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
     private final MemberRepositpory memberRepositpory;
+    private final MemberSettingRepository memberSettingRepository;
 
     @Override
     public UserDetails loadUserByUsername(String id) throws UsernameNotFoundException {
 
         Member member = memberRepositpory.findById(Long.parseLong(id))
                 .orElseThrow(() -> new IllegalArgumentException("해당하는 유저가 없습니다"));
+        MemberSetting memberSetting = memberSettingRepository.findById(new MemberSettingId(member.getUserPk()))
+                .orElseThrow(() -> new IllegalArgumentException("해당하는 유저가 없습니다"));
 
-        UserLogin user = UserLogin.builder().userId(member.getUserId())
-                .password(member.getPassword()).build();
+        UserInfoDetails user = UserInfoDetails.builder().
+                id(member.getUserPk())
+                .userId(member.getUserId())
+                .userPassword(member.getPassword())
+                .userNickName(memberSetting.getNickname())
+                .userThema(memberSetting.getThema())
+                .build();
 
 
         return new CustomUserDetails(user);
