@@ -1,6 +1,7 @@
 package com.als.webIde.service;
 
 
+import com.als.webIde.DTO.request.FileSaveDto;
 import com.als.webIde.DTO.response.CodeExecutionDto;
 import com.als.webIde.DTO.response.CodeResponseDto;
 import com.als.webIde.DTO.response.FileListResponseDto;
@@ -10,6 +11,7 @@ import com.als.webIde.domain.repository.FileRepository;
 import com.als.webIde.global.DTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +30,7 @@ public class ContainerService {
 
     private final ContainerRepository containerRepository;
     private final FileRepository fileRepository;
-    DTO dto;
+
 
     @Value("${COMPILER_CONTAINER_NAME:compiler}")
     private String compilerContainerName;
@@ -36,14 +38,15 @@ public class ContainerService {
 
     @Transactional(readOnly = true)
     public ResponseEntity<DTO> getFileList(Long userId) {
-        Long containerId = containerRepository.findByMemberUserPk(userId);
-        List<File> fileList = fileRepository.findAllByContainerPk(containerId);
+//        Long containerId = containerRepository.findByMemberUserPk(userId);
+//        List<File> fileList = fileRepository.findAllByContainerPk(containerId);
+        List<File> files = fileRepository.findAllByMember_UserPk(userId);
 
         Map<Long, String> fileMap = new HashMap<>();
         FileListResponseDto fileListResponseDto = new FileListResponseDto();
 
-        if (fileList.size() != 0) {
-            for (File f : fileList) {
+        if (files.size() != 0) {
+            for (File f : files) {
                 Long id = f.getFilePk();
                 String filename = f.getFileTitle() + "." + f.getSuffixFile();
                 fileMap.put(id, filename);
@@ -54,22 +57,35 @@ public class ContainerService {
             fileMap.put(1L,"Main.java"); // 실제로는 생성된 팡닐 PK 가져오는 로직으로 변경
             fileListResponseDto.setFileList(fileMap);
         }
-        dto = new DTO("성공", fileListResponseDto);
+        DTO dto = new DTO("성공", fileListResponseDto);
 
         return ResponseEntity.ok(dto);
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<DTO> getCode(long fileId){
+    public ResponseEntity<DTO> getCode(long fileId, long userId){
+        List<File> files = fileRepository.findAllByMember_UserPk(userId);
         File file = fileRepository.findByFilePk(fileId);
+        File correctFile = null;
 
-        CodeResponseDto codeResponseDto = new CodeResponseDto();
-        codeResponseDto.setFileId(fileId);
-        codeResponseDto.setFilename(file.getFileTitle() + "." +file.getSuffixFile());
-        codeResponseDto.setCode(file.getContentCd());
+        for(File f : files){
+            if(f.equals(file)){
+                correctFile=f;
+            }
+        }
 
-        dto = new DTO("성공", codeResponseDto);
-        return ResponseEntity.ok(dto);
+        if(correctFile==null){
+            throw new IllegalArgumentException("파일이 없습니다.");
+        }else{
+            CodeResponseDto codeResponseDto = new CodeResponseDto();
+            codeResponseDto.setFileId(fileId);
+            codeResponseDto.setFilename(file.getFileTitle() + "." +file.getSuffixFile());
+            codeResponseDto.setCode(file.getContentCd());
+
+            DTO dto = new DTO("성공", codeResponseDto);
+            return ResponseEntity.ok(dto);
+        }
+
     }
 
     public ResponseEntity<DTO> executeCode(MultipartFile file, String input){
@@ -86,12 +102,21 @@ public class ContainerService {
             // Java 코드 컴파일 및 실행
             String output = compileAndRunCode(className);
             codeExecutionDto.setResult(output);
-            dto = new DTO("성공", codeExecutionDto);
+            DTO dto = new DTO("성공", codeExecutionDto);
 
             return ResponseEntity.ok(dto);
         } catch (IOException | InterruptedException e) {
             throw new IllegalArgumentException("실패 : "+ e.getMessage());
         }
+    }
+    public ResponseEntity<DTO> saveFile(Long id, String fileName, String fileCode) {
+        File file = fileRepository.findByFilePk(id);
+        file.codeSave(fileName,fileCode);
+        FileSaveDto fileSaveDto = new FileSaveDto();
+        fileSaveDto.setFileName(fileName);
+        fileSaveDto.setFileCode(fileCode);
+        DTO dto = new DTO("파일 저장 성공", fileSaveDto);
+        return ResponseEntity.ok(dto);
     }
 
     /**
@@ -101,7 +126,6 @@ public class ContainerService {
      * @throws IOException 파일 저장 오류
      */
     private String saveSourceFile(MultipartFile file) throws IOException {
-        System.out.println("ContainerService.saveSourceFile");
         String fileName = file.getOriginalFilename();
         if (fileName == null || !fileName.endsWith(".java")) {
             throw new IllegalArgumentException("java 파일이 아닙니다. 파일명을 확인해주세요.");
@@ -120,7 +144,6 @@ public class ContainerService {
      * @throws IOException 파일 저장 오류
      */
     private void saveInputFile(String input) throws IOException {
-        System.out.println("ContainerService.saveInputFile");
         java.io.File inputFile = new java.io.File("./data/input.txt");
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(inputFile))) {
             writer.write(input);
@@ -136,7 +159,6 @@ public class ContainerService {
      * @throws InterruptedException 프로세스 대기 오류
      */
     private String compileAndRunCode(String className) throws IOException, InterruptedException {
-        System.out.println("ContainerService.compileAndRunCode");
         ProcessBuilder builder = new ProcessBuilder(
                 "docker", "exec", compilerContainerName,
                 "sh", "-c", String.format("javac /app/%s.java && java -cp /app %s < /app/input.txt", className, className)
@@ -154,7 +176,5 @@ public class ContainerService {
             return output.toString();
         }
     }
-
-
 
 }

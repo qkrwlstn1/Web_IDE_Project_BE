@@ -8,6 +8,8 @@ import java.util.List;
 
 @Repository
 public interface FileRepository extends JpaRepository<File, Long> {
-    List<File> findAllByContainerPk(Long containerPk);
+    List<File> findAllByMember_UserPk(Long userId);
     File findByFilePk(Long filePk);
+
+
 }

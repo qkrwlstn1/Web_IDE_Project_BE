@@ -11,9 +11,6 @@ public class File {
     @Column(name = "file_pk")
     private Long filePk;
 
-    @Column(name = "container_pk", nullable = false)
-    private Long containerPk;
-
     @Column(name = "suffix_file", nullable = false)
     private String suffixFile;
 
@@ -27,8 +24,15 @@ public class File {
     private String path;
 
     @ManyToOne
-    @JoinColumn(name = "container_pk", insertable = false, updatable = false)
-    private Container container;
+    @JoinColumn(name = "user_pk", insertable = false, updatable = false)
+    private Member member;
 
-    // Getters and Setters
+    //    @ManyToOne
+//    @JoinColumn(name = "container_pk", insertable = false, updatable = false)
+//    private Container container;
+
+    public void codeSave(String fileTitle, String contentCd){
+        this.fileTitle = fileTitle;
+        this.contentCd = contentCd;
+    }
 }

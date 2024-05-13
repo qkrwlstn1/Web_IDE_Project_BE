@@ -16,7 +16,7 @@ public class Container {
     @Column(name = "title")
     private String title;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "user_pk", insertable = false, updatable = false)
     private Member member;
 
