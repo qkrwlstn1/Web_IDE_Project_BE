@@ -16,7 +16,7 @@ import java.util.Collection;
 @AllArgsConstructor
 public class CustomUserDetails implements UserDetails {
 
-    private UserLogin userLogin;
+    private UserInfoDetails userInfoDetails;
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         ArrayList<GrantedAuthority> auth = new ArrayList<>();
@@ -26,12 +26,24 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getPassword() {
-        return userLogin.getPassword();
+        return userInfoDetails.getUserPassword();
     }
 
     @Override
     public String getUsername() {
-        return null;
+        return userInfoDetails.getUserId();
+    }
+
+    public Long getId(){
+        return userInfoDetails.getId();
+    }
+
+    public String getUserNickName(){
+        return userInfoDetails.getUserNickName();
+    }
+
+    public String getUserThema(){
+        return userInfoDetails.getUserThema();
     }
 
     @Override

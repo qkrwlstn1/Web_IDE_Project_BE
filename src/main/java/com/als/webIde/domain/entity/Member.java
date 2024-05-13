@@ -20,4 +20,13 @@ public class Member {
 
     @Column(name = "password", nullable = false)
     private String password;
+
+    @Override
+    public String toString() {
+        return "Member{" +
+                "userPk=" + userPk +
+                ", userId='" + userId + '\'' +
+                ", password='" + password + '\'' +
+                '}';
+    }
 }
