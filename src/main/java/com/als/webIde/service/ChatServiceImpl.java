@@ -17,8 +17,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Transactional
 public class ChatServiceImpl implements ChatService{
-    private final MemberRepository_re memberRepository;
-    private final MemberSettingRepository_re memberSettingRepository;
+    private final MemberRepositpory memberRepository;
+    private final MemberSettingRepository memberSettingRepository;
     private final ChattingRoomRepository chattingRoomRepository;
     private final ChattingMemberRepository chattingMemberRepository;
     private final ChattingMessageRepository chattingMessageRepository;
@@ -29,7 +29,7 @@ public class ChatServiceImpl implements ChatService{
 
     @Override
     public MemberSetting findMemberSetting(Long id) {
-        return memberSettingRepository.findById(id).get();
+        return memberSettingRepository.findById(new MemberSettingId(id)).get();
     }
 
     @Override
@@ -41,7 +41,7 @@ public class ChatServiceImpl implements ChatService{
                 .chattingRoom(cr)
                 .member(member)
                 .build();
-       chattingMemberRepository.save(cm);
+        chattingMemberRepository.save(cm);
         log.info("enterUser end");
         return true;
     }
@@ -58,15 +58,19 @@ public class ChatServiceImpl implements ChatService{
 
     @Override
     public Member findMember(Long id) {
+        log.info("findMember start");
         Optional<Member> member = memberRepository.findById(id);
         if(member.isPresent()) return member.get();
+        log.info("findMember end");
         return null;
     }
 
     @Override
     public ChattingMessageResponseDTO sendMessage(ChattingMessageRequestDTO cmr) {
+        log.info("sendMessage start");
         Optional<Member> optionalSender = memberRepository.findById(cmr.getMemberId());
         Member sender;
+        //회원가입 완성 시 변경 될 코드
         if(optionalSender.isPresent()){
             sender = optionalSender.get();
         }else{
@@ -76,47 +80,56 @@ public class ChatServiceImpl implements ChatService{
                     .build();
             sender = this.makeMemberTest(tmp, new MemberSetting());
         }
-        log.info("MemberId = {}", sender.getUserPk());
-        log.info("ChattingRoomId = {}", cmr.getChattingRoomId());
+        //-----------
         Optional<ChattingRoom> optionalChattingRoom = chattingRoomRepository.findById(cmr.getChattingRoomId());
         ChattingRoom senderChattingRoom;
+
+        //방 만들기 기능 확장 시 변경 될 코드
         if(optionalChattingRoom.isPresent()){
             senderChattingRoom = optionalChattingRoom.get();
         }else{
             senderChattingRoom = this.makeRoomTest(1L, "방이없네어..");
         }
+        //-------------------------------
+
         ChattingMessage sendMessage = new ChattingMessage().builder()
                 .memberId(sender)
                 .roomId(senderChattingRoom)
                 .sendTime(LocalDateTime.now())
                 .messageContent(cmr.getMessageContent())
                 .build();
-        MemberSetting memberSetting = memberSettingRepository.findById(sender.getUserPk()).get();
+        MemberSetting memberSetting = memberSettingRepository.findById(new MemberSettingId(sender.getUserPk())).get();
         sendMessage = chattingMessageRepository.save(sendMessage);
         ChattingMessageResponseDTO result = new ChattingMessageResponseDTO(sendMessage);
         result.setNickname(memberSetting.getNickname());
+        log.info("sendMessage end");
         return result;
     }
 
-    @Override
+
+    @Override //방 만들기 기능 확장 시 변경 될 메서드
     public ChattingRoom makeRoomTest(Long roomMaster, String roomName){
-        return chattingRoomRepository.save(new ChattingRoom().builder()
-                        .roomMaster(roomMaster)
-                        .roomDate(LocalDateTime.now())
-                        .roomName(roomName)
-                        .build());
+        log.info("makeRoomTest start");
+        ChattingRoom chattingRoom = chattingRoomRepository.save(new ChattingRoom().builder()
+                .roomMaster(roomMaster)
+                .roomDate(LocalDateTime.now())
+                .roomName(roomName)
+                .build());
+        log.info("makeRoomTest end");
+        return  chattingRoom;
     }
-    @Override
+
+    @Override//회원가입 완성 시 없어질 메서드
     public Member makeMemberTest(Member member, MemberSetting memberSetting){
+        log.info("makeMemberTest start");
         Member member1 = memberRepository.save(member);
-        log.info("memberid = {}", member1.getUserPk());
-        memberSetting = new MemberSetting.builder()
+        memberSetting = memberSetting.builder()
+                .MemberId(new MemberSettingId(member1.getUserPk()))
                 .nickname("testNick")
                 .member(member1)
                 .build();
-        log.info("memberNick = {}", memberSetting.getNickname());
-        log.info("memberSetting.member.pk = {}",memberSetting.getMember().getUserPk());
         memberSettingRepository.save(memberSetting);
+        log.info("makeMemberTest end");
         return member1;
     }
 

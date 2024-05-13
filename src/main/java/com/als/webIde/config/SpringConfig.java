@@ -38,7 +38,7 @@ public class SpringConfig {
         http.addFilterBefore(new JwtAuthFilter(customUserDetailsService, jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
         http.authorizeHttpRequests(request ->
-                        request.requestMatchers("/api/user/idcheck","/api/user/nicknamecheck","/api/user/signup","/api/user/login")
+                        request.requestMatchers("/","/**","/**/**","/**/**/**","/api/user/idcheck","/api/user/nicknamecheck","/api/user/signup","/api/user/login")
                                 .permitAll()
                                 .anyRequest().authenticated());
 
