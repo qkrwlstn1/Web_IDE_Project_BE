@@ -2,6 +2,7 @@ package com.als.webIde.domain.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,6 +13,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @Embeddable
+@Builder
 @NoArgsConstructor
 public class MemberSettingId implements Serializable {
 

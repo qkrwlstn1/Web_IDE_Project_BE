@@ -1,15 +1,19 @@
 package com.als.webIde.domain.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 
 import java.io.Serializable;
 import java.util.Objects;
 
 @Getter
-@Builder
 @Entity
 @Table(name = "member_setting")
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class MemberSetting {
