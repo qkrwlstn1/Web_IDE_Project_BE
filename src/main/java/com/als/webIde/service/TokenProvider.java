@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 import org.springframework.security.core.Authentication;
 
 @Slf4j
-@RequiredArgsConstructor
 @Component
 public class TokenProvider {
 

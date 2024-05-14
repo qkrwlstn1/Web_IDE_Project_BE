@@ -2,14 +2,19 @@ package com.als.webIde.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
 @Table(name = "file")
 public class File {
     @Id
     @Column(name = "file_pk")
     private Long filePk;
+
+    @Column(name = "user_pk", nullable = false)
+    private Long userPk;
 
     @Column(name = "suffix_file", nullable = false)
     private String suffixFile;
