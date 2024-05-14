@@ -1,0 +1,3 @@
+[submodule "sub_Module"]
+	path = sub_Module
+	url = https://github.com/goorm-6th-Als/sub_Module.git

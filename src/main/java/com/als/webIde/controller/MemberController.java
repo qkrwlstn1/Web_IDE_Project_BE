@@ -11,24 +11,20 @@ import com.als.webIde.DTO.response.ResponseUserInfo;
 import com.als.webIde.domain.entity.Member;
 import com.als.webIde.domain.entity.MemberSetting;
 import com.als.webIde.domain.entity.MemberSettingId;
-import com.als.webIde.domain.repository.MemberRepositpory;
+import com.als.webIde.domain.repository.MemberRepository;
 import com.als.webIde.domain.repository.MemberSettingRepository;
 import com.als.webIde.service.UserService;
 import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -36,14 +32,14 @@ import java.util.Optional;
 @RestController
 public class MemberController {
 
-    private final MemberRepositpory memberRepositpory;
+    private final MemberRepository memberRepository;
     private final MemberSettingRepository memberSettingRepository;
     private final UserService userService;
     private final BCryptPasswordEncoder passwordEncoder;
 
     @PostMapping("/idcheck")
     public ResponseEntity<Message> checkedUserId(@RequestBody UserId userId){
-        List<Member> memberByUserId = memberRepositpory.findMemberByUserId(userId.getUserId());
+        List<Member> memberByUserId = memberRepository.findMemberByUserId(userId.getUserId());
         if (memberByUserId.isEmpty()){
             return ResponseEntity.ok(Message.builder().message("사용할 수 있는 아이디입니다.").build());
         }
@@ -51,14 +47,14 @@ public class MemberController {
     }
 
     @PostMapping("/nicknamecheck")
-    public ResponseEntity<String> checkedUserNickName(@RequestBody UserNickName nickName){
+    public ResponseEntity<Message> checkedUserNickName(@RequestBody UserNickName nickName){
         List<MemberSetting> findNickName = memberSettingRepository.findMemberSettingByNickname(nickName.getUserNickName());
 
         if (findNickName.isEmpty()){
-            return ResponseEntity.ok("사용할 수 있는 닉네임입니다.");
+            return ResponseEntity.ok(Message.builder().message("사용할 수 있는 닉네임입니다.").build());
         }
 
-        return ResponseEntity.status(400).body("사용할 수 없는 닉네임입니다.");
+        return ResponseEntity.status(400).body(Message.builder().message("사용할 수 없는 닉네임입니다.").build());
     }
 
     @Transactional
@@ -71,7 +67,7 @@ public class MemberController {
         Member saveUser = Member.builder()
                 .userId(userInfo.getUserId())
                 .password(passwordEncoder.encode(userInfo.getPassword())).build();
-        Member member = memberRepositpory.save(saveUser);
+        Member member = memberRepository.save(saveUser);
         log.info("유저은 : {}",saveUser.getUserId());
         MemberSettingId memberSettingId = new MemberSettingId(member.getUserPk());
         MemberSetting saveUserSetting = MemberSetting.builder()
@@ -97,7 +93,7 @@ public class MemberController {
     public ResponseEntity<String> login(@RequestBody UserLogin userLogin) {
 
         TokenDto token = new TokenDto("helo","jhele","df");
-        List<Member> memberByUserId = memberRepositpory.findMemberByUserId(userLogin.getUserId());
+        List<Member> memberByUserId = memberRepository.findMemberByUserId(userLogin.getUserId());
         try{
             if(memberByUserId.isEmpty()){
                 // 에러 핸들러 설정하기
@@ -139,9 +135,15 @@ public class MemberController {
         // 닉네임, 비밀번호, 
         CustomUserDetails details = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
+        log.info("details의 닉네임 : {}",details.getUserNickName());
+        log.info("details의 테마 : {}",details.getUserThema());
+        log.info("details의 패스워드 : {}",details.getPassword());
+        log.info("details의 아아디 : {}",details.getUsername());
+        log.info("details의 유저아이디 : {}",details.getId());
+
         ResponseUserInfo userInfo = ResponseUserInfo.builder()
                 .userId(details.getUsername())
-                .userId(details.getUserNickName()).build();
+                .nickName(details.getUserNickName()).build();
 
         return ResponseEntity.ok().body(userInfo);
     }
@@ -158,7 +160,7 @@ public class MemberController {
     }
 
     @PostMapping("/nickname")
-    public ResponseEntity<String> changeNichname(String nickname){
+    public ResponseEntity<String> changeNickname(String nickname){
         CustomUserDetails details = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         MemberSetting referenceById = memberSettingRepository.getReferenceById(new MemberSettingId(details.getId()));
@@ -175,13 +177,13 @@ public class MemberController {
     public ResponseEntity<String> changePassword(String password){
         CustomUserDetails details = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        Member member = memberRepositpory.findById(details.getId()).get();
+        Member member = memberRepository.findById(details.getId()).get();
 
         Member createMember = Member.builder().userPk(member.getUserPk())
                 .userId(member.getUserId())
                 .password(password).build();
 
-        memberRepositpory.save(member);
+        memberRepository.save(member);
         return ResponseEntity.ok("ok");
     }
 }

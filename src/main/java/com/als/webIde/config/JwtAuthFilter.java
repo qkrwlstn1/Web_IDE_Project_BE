@@ -13,7 +13,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -23,7 +22,6 @@ import java.io.IOException;
 @Slf4j
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
-
     private final CustomUserDetailsService customUserDetailsService;
     private final TokenProvider jwtUtil;
 
@@ -49,12 +47,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
                 }
             }catch (SecurityException | MalformedJwtException e) {
+                log.info("JWT가 올바르게 구성되지 않았습니다.");
                 request.setAttribute("exception", ErrorCode.WRONG_TYPE_TOKEN.getCode());
             } catch (ExpiredJwtException e) {
+                log.info("JWT가 만료됨");
                 request.setAttribute("exception", ErrorCode.EXPIRED_TOKEN.getCode());
             } catch (UnsupportedJwtException e) {
+                log.info("지원되지 않는 JWT");
                 request.setAttribute("exception", ErrorCode.UNSUPPORTED_TOKEN.getCode());
             } catch (IllegalArgumentException e) {
+                log.info("JWT의 클래엠이 null 또는 비어 있음");
                 request.setAttribute("exception", ErrorCode.WRONG_TYPE_TOKEN.getCode());
             } catch (Exception e) {
                 request.setAttribute("exception", ErrorCode.UNKNOWN_ERROR.getCode());
