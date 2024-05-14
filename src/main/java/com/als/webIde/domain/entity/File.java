@@ -4,6 +4,10 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -12,6 +16,7 @@ import lombok.Setter;
 @Table(name = "file")
 public class File {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "file_pk")
     private Long filePk;
 
@@ -38,9 +43,19 @@ public class File {
 //    @JoinColumn(name = "container_pk", insertable = false, updatable = false)
 //    private Container container;
 
-    public void codeSave(String fileTitle, String contentCd) {
+    public void codeSave(String fileTitle, String contentCd){
         this.fileTitle = fileTitle;
         this.contentCd = contentCd;
     }
+
+    @Builder
+    public File(Long userPk, String fileTitle, String suffixFile,String contentCd, String path) {
+        this.userPk = userPk;
+        this.fileTitle = fileTitle;
+        this.contentCd = contentCd;
+        this.suffixFile = suffixFile;
+        this.path = path;
+    }
+
 
 }

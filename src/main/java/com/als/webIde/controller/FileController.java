@@ -22,7 +22,7 @@ public class FileController {
     private FileService fileService;
 
     // 파일 생성하기
-    @PostMapping("/project/files")
+//    @PostMapping("/project/files")
     public ResponseEntity<File> createFile(@RequestBody File file){
         File createdFile = fileService.createFile(file);
         return ResponseEntity.ok(createdFile);
@@ -95,4 +95,3 @@ public class FileController {
 //            return ResponseEntity.badRequest().body("파일을 삭제하지 못했습니다: " + e.getMessage());
 //        }
 //    }
-
