@@ -1,7 +1,8 @@
 package com.als.webIde.controller;
 
 import com.als.webIde.DTO.etc.CustomUserDetails;
-import com.als.webIde.DTO.request.FileSaveDto;
+import com.als.webIde.DTO.request.AddFileDto;
+import com.als.webIde.DTO.request.FileUpdateDto;
 import com.als.webIde.domain.entity.Member;
 import com.als.webIde.domain.repository.MemberRepositpory;
 import com.als.webIde.global.DTO;
@@ -31,8 +32,7 @@ public class ContainerController {
     //FileList갱신
     @GetMapping
     public ResponseEntity<DTO> getFileList(){
-        CustomUserDetails details = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Member member = memberRepositpory.findById(details.getId()).get();
+        Member member = GetMember();
         log.info("member : {}", member.toString());
 
         return containerService.getFileList(member.getUserPk());
@@ -41,8 +41,7 @@ public class ContainerController {
     //선택한 파일 불러오기
     @GetMapping("/{id}")
     public ResponseEntity<DTO> getCode(@RequestParam String Id){
-        CustomUserDetails details = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Member member = memberRepositpory.findById(details.getId()).get();
+        Member member = GetMember();
         long fileId = Long.parseLong(Id);
         return containerService.getCode(fileId, member.getUserPk());
     }
@@ -55,9 +54,9 @@ public class ContainerController {
         return containerService.executeCode(file, input);
     }
 
-    //파일 저장
+    //파일 수정
     @PutMapping("/file/{fileId}")
-    public ResponseEntity<DTO> fileSave(@RequestBody FileSaveDto requestDto){
+    public ResponseEntity<DTO> fileSave(@RequestBody FileUpdateDto requestDto){
         Long id = Long.valueOf(requestDto.getFileId());
         String fileName = requestDto.getFileName();
         String fileCode = requestDto.getFileCode();
@@ -65,6 +64,19 @@ public class ContainerController {
             fileName= fileName.replace(".java","");
         }
         return containerService.saveFile(id,fileName, fileCode);
+    }
+
+    @PostMapping("/file")
+    public void createFile(@RequestBody AddFileDto dto ){
+        Member member = GetMember();
+        dto.setUserPk(member.getUserPk());
+        System.out.println("dto = " + dto);
+        containerService.createFile(dto);
+    }
+
+    private Member GetMember() {
+        CustomUserDetails details = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return memberRepositpory.findById(details.getId()).get();
     }
 
 }

@@ -1,15 +1,19 @@
 package com.als.webIde.domain.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
 @Table(name = "file")
 public class File {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "file_pk")
     private Long filePk;
 
@@ -40,4 +44,15 @@ public class File {
         this.fileTitle = fileTitle;
         this.contentCd = contentCd;
     }
+
+    @Builder
+    public File(Long userPk, String fileTitle, String suffixFile,String contentCd, String path) {
+        this.userPk = userPk;
+        this.fileTitle = fileTitle;
+        this.contentCd = contentCd;
+        this.suffixFile = suffixFile;
+        this.path = path;
+    }
+
+
 }

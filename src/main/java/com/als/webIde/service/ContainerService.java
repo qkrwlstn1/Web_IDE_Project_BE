@@ -1,7 +1,8 @@
 package com.als.webIde.service;
 
 
-import com.als.webIde.DTO.request.FileSaveDto;
+import com.als.webIde.DTO.request.AddFileDto;
+import com.als.webIde.DTO.request.FileUpdateDto;
 import com.als.webIde.DTO.response.CodeExecutionDto;
 import com.als.webIde.DTO.response.CodeResponseDto;
 import com.als.webIde.DTO.response.FileListResponseDto;
@@ -86,6 +87,10 @@ public class ContainerService {
 
     }
 
+    public void createFile(AddFileDto dto) {
+        fileRepository.save(dto.toEntity());
+    }
+
     public ResponseEntity<DTO> executeCode(MultipartFile file, String input){
         System.out.println("ContainerService.executeCode");
 
@@ -110,10 +115,10 @@ public class ContainerService {
     public ResponseEntity<DTO> saveFile(Long id, String fileName, String fileCode) {
         File file = fileRepository.findByFilePk(id);
         file.codeSave(fileName,fileCode);
-        FileSaveDto fileSaveDto = new FileSaveDto();
-        fileSaveDto.setFileName(fileName);
-        fileSaveDto.setFileCode(fileCode);
-        DTO dto = new DTO("파일 저장 성공", fileSaveDto);
+        FileUpdateDto fileUpdateDto = new FileUpdateDto();
+        fileUpdateDto.setFileName(fileName);
+        fileUpdateDto.setFileCode(fileCode);
+        DTO dto = new DTO("파일 저장 성공", fileUpdateDto);
         return ResponseEntity.ok(dto);
     }
 
