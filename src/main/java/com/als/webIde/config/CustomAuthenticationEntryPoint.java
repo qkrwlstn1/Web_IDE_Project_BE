@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.SneakyThrows;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
@@ -38,13 +39,10 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     }
 
     //한글 출력을 위해 getWriter() 사용
-    private void setResponse(HttpServletResponse response, ErrorCode exceptionCode) throws IOException, JSONException {
+    private void setResponse(HttpServletResponse response, ErrorCode exceptionCode) throws IOException {
         response.setContentType("application/json;charset=UTF-8");
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
-        JSONObject responseJson = new JSONObject();
-        responseJson.put("message", exceptionCode.getMessage());
-
-        response.getWriter().print(responseJson);
+        response.getWriter().print(new ObjectMapper().writeValueAsString(exceptionCode.getMessage()));
     }
 }

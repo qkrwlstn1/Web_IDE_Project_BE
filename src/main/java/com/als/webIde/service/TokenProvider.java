@@ -28,7 +28,7 @@ public class TokenProvider {
     private String secretKey;
     private Key key;
     private final String AUTHORITIES_KEY = "auth";
-    private final long accessTokenValidTime = (60 * 1000) * 60; // 3시간
+    private final long accessTokenValidTime = (60 * 1000) * 3; // 3시간
     private final long refreshTokenValidTime = (60 * 1000) * 60 * 24 * 14; // 7일
 
     @PostConstruct
@@ -86,7 +86,6 @@ public class TokenProvider {
     }
 
     public boolean validateToken(String authToken) throws ExpiredJwtException {
-
         Jwts.parser().setSigningKey(secretKey).build().parseClaimsJws(authToken);
         return true;
 

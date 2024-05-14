@@ -44,8 +44,8 @@ public class SpringConfig {
         );
 
         http.addFilterBefore(new JwtAuthFilter(customUserDetailsService, tokenProvider), UsernamePasswordAuthenticationFilter.class);
-        /*http.exceptionHandling(exceptionHandling ->
-                exceptionHandling.authenticationEntryPoint(new CustomAuthenticationEntryPoint()));*/
+        http.exceptionHandling(exceptionHandling ->
+                exceptionHandling.authenticationEntryPoint(new CustomAuthenticationEntryPoint()));
         http.authorizeHttpRequests(request ->
                 request.requestMatchers("/api/user/idcheck","/api/user/nicknamecheck","/api/user/signup","/api/user/login",
                                 "/chat/**","/","/index.html")

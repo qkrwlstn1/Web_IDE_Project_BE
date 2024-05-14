@@ -69,55 +69,55 @@ public class DockerServiceImpl implements DockerService {
         }
         return "findContainerByUserId 에러";
     }
-    @Override
-    public List<String> listUserContainers (String userId){
-        return dockerClient.listContainersCmd()
-                .withLabelFilter(Collections.singletonMap("userId", userId))
-                .exec()
-                .stream()
-                .map(Container::getId)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public void test () {
-        dockerClient.pingCmd().exec();
-    }
-
-    @Override
-    // 명령 실행 메서드
-    public String executeCommand (String containerId, String command){
-        try {
-            ExecCreateCmdResponse execCreateCmdResponse = dockerClient.execCreateCmd(containerId)
-                    // 표준 출력, 오류 연결
-                    .withAttachStdout(true)
-                    .withAttachStderr(true)
-                    .withCmd("/bin/sh", "-c", command)
-                    .exec();
-
-            try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                 ByteArrayOutputStream errorStream = new ByteArrayOutputStream()) {
-
-                ExecStartResultCallback resultCallback = new ExecStartResultCallback(outputStream, errorStream);
-                dockerClient.execStartCmd(execCreateCmdResponse.getId()).exec(resultCallback).awaitCompletion();
-
-                String output = outputStream.toString();
-                String errors = errorStream.toString();
-
-                if (!errors.isEmpty()) {
-                    throw new RuntimeException("명령 실행 중 오류 발생: " + errors);
-                }
-
-                return output;
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new RuntimeException("명령 실행이 중단되었습니다", e);
-            } catch (IOException e) {
-                throw new RuntimeException("명령 출력 처리 중 오류 발생", e);
-            }
-        } catch (DockerException e) {
-            throw new RuntimeException("Docker 명령 실행 중 예외 발생", e);
+        @Override
+        public List<String> listUserContainers (String userId){
+            return dockerClient.listContainersCmd()
+                    .withLabelFilter(Collections.singletonMap("userId", userId))
+                    .exec()
+                    .stream()
+                    .map(Container::getId)
+                    .collect(Collectors.toList());
         }
 
+        @Override
+        public void test () {
+            dockerClient.pingCmd().exec();
+        }
+
+        @Override
+        // 명령 실행 메서드
+        public String executeCommand (String containerId, String command){
+            try {
+                ExecCreateCmdResponse execCreateCmdResponse = dockerClient.execCreateCmd(containerId)
+                        // 표준 출력, 오류 연결
+                        .withAttachStdout(true)
+                        .withAttachStderr(true)
+                        .withCmd("/bin/sh", "-c", command)
+                        .exec();
+
+                try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                     ByteArrayOutputStream errorStream = new ByteArrayOutputStream()) {
+
+                    ExecStartResultCallback resultCallback = new ExecStartResultCallback(outputStream, errorStream);
+                    dockerClient.execStartCmd(execCreateCmdResponse.getId()).exec(resultCallback).awaitCompletion();
+
+                    String output = outputStream.toString();
+                    String errors = errorStream.toString();
+
+                    if (!errors.isEmpty()) {
+                        throw new RuntimeException("명령 실행 중 오류 발생: " + errors);
+                    }
+
+                    return output;
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("명령 실행이 중단되었습니다", e);
+                } catch (IOException e) {
+                    throw new RuntimeException("명령 출력 처리 중 오류 발생", e);
+                }
+            } catch (DockerException e) {
+                throw new RuntimeException("Docker 명령 실행 중 예외 발생", e);
+            }
+
+        }
     }
-}

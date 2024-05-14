@@ -62,16 +62,16 @@ public class FileServiceImpl implements FileService {
         file.setSuffixFile(determineSuffix(fileTitle)); // 파일 확장자 추론 로직 필요
         file.setContentCd(
                 "import java.util.*;\n"
-                        + "import java.lang.*;\n"
-                        + "import java.io.*;\n"
-                        + "\n"
-                        + "class Ideone\n"
-                        + "{\n"
-                        + "\tpublic static void main (String[] args) throws java.lang.Exception\n"
-                        + "\t{\n"
-                        + "\n"
-                        + "\t}\n"
-                        + "}");
+                + "import java.lang.*;\n"
+                + "import java.io.*;\n"
+                + "\n"
+                + "class Ideone\n"
+                + "{\n"
+                + "\tpublic static void main (String[] args) throws java.lang.Exception\n"
+                + "\t{\n"
+                + "\n"
+                + "\t}\n"
+                + "}");
         file.setPath("/workspace/" + userPk + "/" + fileTitle); // 경로 설정
         fileRepository.save(file);
 
