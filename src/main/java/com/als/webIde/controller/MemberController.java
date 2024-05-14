@@ -136,7 +136,7 @@ public class MemberController {
         CustomUserDetails details = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         log.info("details의 닉네임 : {}",details.getUserNickName());
-        log.info("details의 테마 : {}",details.getUserThema());
+        log.info("details의 테마 : {}",details.getUserTheme());
         log.info("details의 패스워드 : {}",details.getPassword());
         log.info("details의 아아디 : {}",details.getUsername());
         log.info("details의 유저아이디 : {}",details.getId());
@@ -166,7 +166,7 @@ public class MemberController {
         MemberSetting referenceById = memberSettingRepository.getReferenceById(new MemberSettingId(details.getId()));
 
         MemberSetting member = MemberSetting.builder().MemberId(new MemberSettingId(details.getId()))
-                .nickname(nickname).thema(details.getUserThema()).member(referenceById.getMember()).build();
+                .nickname(nickname).theme(details.getUserTheme()).member(referenceById.getMember()).build();
 
         memberSettingRepository.save(member);
 

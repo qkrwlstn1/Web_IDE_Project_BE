@@ -22,6 +22,18 @@ repositories {
 }
 
 dependencies {
+	//도커 - 자바 의존성 추가.
+	implementation 'com.github.docker-java:docker-java-api:3.3.4'
+	implementation 'com.github.docker-java:docker-java-core:3.3.4'
+	implementation 'com.github.docker-java:docker-java-transport-httpclient5:3.3.4'
+	implementation 'org.apache.httpcomponents.client5:httpclient5:5.2.1'
+	implementation 'org.apache.httpcomponents.core5:httpcore5:5.2.2'
+
+	// Testcontainers 인터그레이션 테스트 용
+	testImplementation 'org.testcontainers:testcontainers:1.17.3'
+	testImplementation 'org.testcontainers:junit-jupiter:1.17.3'
+	testImplementation 'org.testcontainers:mysql:1.17.3'
+
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -39,6 +51,9 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+
+	// json
+	implementation 'org.json:json:20210307'
 }
 
 tasks.named('test') {
