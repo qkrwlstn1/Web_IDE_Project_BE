@@ -4,7 +4,7 @@ import com.als.webIde.DTO.etc.CustomUserDetails;
 import com.als.webIde.DTO.request.AddFileDto;
 import com.als.webIde.DTO.request.FileUpdateDto;
 import com.als.webIde.domain.entity.Member;
-import com.als.webIde.domain.repository.MemberRepositpory;
+import com.als.webIde.domain.repository.MemberRepository;
 import com.als.webIde.global.DTO;
 import com.als.webIde.service.ContainerService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class ContainerController {
 
     private final ContainerService containerService;
-    private final MemberRepositpory memberRepositpory;
+    private final MemberRepository memberRepository;
 
 
     @GetMapping("/test")
@@ -76,7 +76,7 @@ public class ContainerController {
 
     private Member GetMember() {
         CustomUserDetails details = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return memberRepositpory.findById(details.getId()).get();
+        return memberRepository.findById(details.getId()).get();
     }
 
 }
