@@ -9,7 +9,7 @@ import com.als.webIde.DTO.response.FileListResponseDto;
 import com.als.webIde.domain.entity.File;
 import com.als.webIde.domain.repository.ContainerRepository;
 import com.als.webIde.domain.repository.FileRepository;
-import com.als.webIde.global.DTO;
+import com.als.webIde.DTO.etc.DTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -35,12 +33,8 @@ public class ContainerService {
     private String compilerContainerName;
 
 
-    @Transactional(readOnly = true)
     public ResponseEntity<DTO> getFileList(Long userId) {
-//        Long containerId = containerRepository.findByMemberUserPk(userId);
-//        List<File> fileList = fileRepository.findAllByContainerPk(containerId);
         List<File> files = fileRepository.findAllByMember_UserPk(userId);
-
         Map<Long, String> fileMap = new HashMap<>();
         FileListResponseDto fileListResponseDto = new FileListResponseDto();
 
@@ -52,43 +46,50 @@ public class ContainerService {
             }
             fileListResponseDto.setFileList(fileMap);
         }else{
-            //기본파일 생성 로직??
-            fileMap.put(1L,"Main.java"); // 실제로는 생성된 팡닐 PK 가져오는 로직으로 변경
-            fileListResponseDto.setFileList(fileMap);
+            // 기본 파일 생성 메서드 호출
+            AddFileDto addFileDto = new AddFileDto();
+            addFileDto.setUserPk(userId);
+            addFileDto.setFileName("Main");
+            createFile(addFileDto);
+            return getFileList(userId);
+//            fileMap.put( ,"Main.java"); // 실제로는 생성된 팡닐 PK 가져오는 로직으로 변경
+//            fileListResponseDto.setFileList(fileMap);
         }
-        DTO dto = new DTO("성공", fileListResponseDto);
+        DTO dtoImpl = new DTO("성공", fileListResponseDto);
 
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(dtoImpl);
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<DTO> getCode(long fileId, long userId){
-        List<File> files = fileRepository.findAllByMember_UserPk(userId);
-        File file = fileRepository.findByFilePk(fileId);
-        File correctFile = null;
+    public ResponseEntity<DTO> getCode(Long fileId, Long userId) {
+        File correctFile = getCorrectFile(fileId, userId);
 
-        for(File f : files){
-            if(f.equals(file)){
-                correctFile=f;
-            }
-        }
+        CodeResponseDto codeResponseDto = new CodeResponseDto();
+        codeResponseDto.setFileId(fileId);
+        codeResponseDto.setFilename(correctFile.getFileTitle() + "." + correctFile.getSuffixFile());
+        codeResponseDto.setCode(correctFile.getContentCd());
 
-        if(correctFile==null){
-            throw new IllegalArgumentException("파일이 없습니다.");
-        }else{
-            CodeResponseDto codeResponseDto = new CodeResponseDto();
-            codeResponseDto.setFileId(fileId);
-            codeResponseDto.setFilename(file.getFileTitle() + "." +file.getSuffixFile());
-            codeResponseDto.setCode(file.getContentCd());
-
-            DTO dto = new DTO("성공", codeResponseDto);
-            return ResponseEntity.ok(dto);
-        }
+        DTO dtoImpl = new DTO("성공", codeResponseDto);
+        return ResponseEntity.ok(dtoImpl);
 
     }
 
-    public void createFile(AddFileDto dto) {
-        fileRepository.save(dto.toEntity());
+    public ResponseEntity<DTO> createFile(AddFileDto addFileDto) {
+        String fileName = addFileDto.getFileName();
+        if(fileName.contains(".java")){
+            fileName= fileName.replace(".java","");
+        }
+        addFileDto.setFileName(fileName);
+        File savedFile = fileRepository.save(addFileDto.toEntity());
+
+        CodeResponseDto codeResponseDto = new CodeResponseDto();
+        codeResponseDto.setFileId(savedFile.getFilePk());
+        codeResponseDto.setFilename(savedFile.getFileTitle() + "." +savedFile.getSuffixFile());
+        codeResponseDto.setCode(savedFile.getContentCd());
+
+        DTO dtoImpl = new DTO("성공", codeResponseDto);
+        return ResponseEntity.ok(dtoImpl);
+
     }
 
     public ResponseEntity<DTO> executeCode(MultipartFile file, String input){
@@ -105,22 +106,56 @@ public class ContainerService {
             // Java 코드 컴파일 및 실행
             String output = compileAndRunCode(className);
             codeExecutionDto.setResult(output);
-            DTO dto = new DTO("성공", codeExecutionDto);
+            DTO dtoImpl = new DTO("성공", codeExecutionDto);
 
-            return ResponseEntity.ok(dto);
+            return ResponseEntity.ok(dtoImpl);
         } catch (IOException | InterruptedException e) {
             throw new IllegalArgumentException("실패 : "+ e.getMessage());
         }
     }
-    public ResponseEntity<DTO> saveFile(Long id, String fileName, String fileCode) {
-        File file = fileRepository.findByFilePk(id);
-        file.codeSave(fileName,fileCode);
-        FileUpdateDto fileUpdateDto = new FileUpdateDto();
-        fileUpdateDto.setFileName(fileName);
-        fileUpdateDto.setFileCode(fileCode);
-        DTO dto = new DTO("파일 저장 성공", fileUpdateDto);
-        return ResponseEntity.ok(dto);
+
+    //파일 수정
+    public ResponseEntity<DTO> updateFile(Long fileId, Long userPk, String fileName, String fileCode) {
+        File correctFile = getCorrectFile(fileId, userPk);
+
+            correctFile.codeSave(fileName, fileCode);
+            FileUpdateDto fileUpdateDto = new FileUpdateDto();
+            fileUpdateDto.setFileId(String.valueOf(fileId));
+            fileUpdateDto.setFileName(fileName);
+            fileUpdateDto.setFileCode(fileCode);
+            DTO dtoImpl = new DTO("파일 수정 성공", fileUpdateDto);
+            return ResponseEntity.ok(dtoImpl);
+
     }
+
+    public ResponseEntity<String> deleteFile(Long filePk, Long memberPk) {
+        File correctFile = getCorrectFile(filePk, memberPk);
+        fileRepository.delete(correctFile);
+
+        return ResponseEntity.ok("파일 삭제 성공");
+    }
+
+
+    //요청받은 파일이 유저의 파일이 맞는지 검증하고, 맞는 파일객체를 반환.
+    private File getCorrectFile(Long fileId, Long userPk) {
+        List<File> files = fileRepository.findAllByMember_UserPk(userPk);
+        File correctFile = null;
+        for (File file : files) {
+            Long filePk = file.getFilePk();
+            if(Objects.equals(filePk, fileId)){
+                correctFile = file;
+                break;
+            }
+        }
+        if(correctFile!=null){
+            return correctFile;
+        }else{
+            throw new NoSuchElementException("내 파일이 아닙니다.");
+        }
+
+    }
+
+
 
     /**
      * .java 소스 파일을 Docker 볼륨에 저장.
@@ -179,5 +214,6 @@ public class ContainerService {
             return output.toString();
         }
     }
+
 
 }

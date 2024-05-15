@@ -5,7 +5,7 @@ import com.als.webIde.DTO.request.AddFileDto;
 import com.als.webIde.DTO.request.FileUpdateDto;
 import com.als.webIde.domain.entity.Member;
 import com.als.webIde.domain.repository.MemberRepository;
-import com.als.webIde.global.DTO;
+import com.als.webIde.DTO.etc.DTO;
 import com.als.webIde.service.ContainerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,51 +32,61 @@ public class ContainerController {
     //FileList갱신
     @GetMapping
     public ResponseEntity<DTO> getFileList(){
-        Member member = GetMember();
-        log.info("member : {}", member.toString());
-
-        return containerService.getFileList(member.getUserPk());
+        long memberPk = getMemberPk();
+        return containerService.getFileList(memberPk);
     }
 
     //선택한 파일 불러오기
     @GetMapping("/{id}")
-    public ResponseEntity<DTO> getCode(@RequestParam String Id){
-        Member member = GetMember();
+    public ResponseEntity<DTO> getCode(@RequestParam("fileId") String Id){
+        long memberPk = getMemberPk();
         long fileId = Long.parseLong(Id);
-        return containerService.getCode(fileId, member.getUserPk());
+        return containerService.getCode(fileId, memberPk);
     }
 
     // 코드 실행
     @PostMapping("/execute")
     public ResponseEntity<DTO> executeCode(@RequestParam("file") MultipartFile file,
-                                           @RequestParam("input") String input) {
+                                               @RequestParam("input") String input) {
         System.out.println("ContainerController.executeCode");
         return containerService.executeCode(file, input);
     }
 
     //파일 수정
+    // 파일 명을 입력받고 코드내의 파일 명과 일치하도록 변경해야할듯.
+    // 코드내에선 파일명을 바꿨는데, 파일 명은 그와 상이하면 안되므로, 변경하도록 해야할것 같음.
     @PutMapping("/file/{fileId}")
     public ResponseEntity<DTO> fileSave(@RequestBody FileUpdateDto requestDto){
-        Long id = Long.valueOf(requestDto.getFileId());
+        long memberPk = getMemberPk();
+        Long fileId = Long.valueOf(requestDto.getFileId());
         String fileName = requestDto.getFileName();
         String fileCode = requestDto.getFileCode();
         if(fileName.contains(".java")){
             fileName= fileName.replace(".java","");
         }
-        return containerService.saveFile(id,fileName, fileCode);
+        return containerService.updateFile(fileId,memberPk ,fileName, fileCode);
     }
 
+    //파일 생성
     @PostMapping("/file")
-    public void createFile(@RequestBody AddFileDto dto ){
-        Member member = GetMember();
-        dto.setUserPk(member.getUserPk());
-        System.out.println("dto = " + dto);
-        containerService.createFile(dto);
+    public ResponseEntity<DTO> createFile(@RequestBody AddFileDto dto ){
+        long memberPk = getMemberPk();
+        dto.setUserPk(memberPk);
+        return containerService.createFile(dto);
     }
 
-    private Member GetMember() {
+    //파일 삭제
+    @DeleteMapping("/file/{filePk}")
+    public ResponseEntity<String> deleteFile(@RequestParam("filePk") Long filePk) {
+        long memberPk = getMemberPk();
+        return containerService.deleteFile(filePk, memberPk);
+    }
+
+    // 시큐리티 컨텍스트에서 유저의 pk값 가져옴
+    private long getMemberPk() {
         CustomUserDetails details = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return memberRepository.findById(details.getId()).get();
+        Member member = memberRepository.findById(details.getId()).get();
+        return member.getUserPk();
     }
 
 }

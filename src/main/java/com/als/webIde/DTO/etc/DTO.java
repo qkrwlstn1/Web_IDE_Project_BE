@@ -1,4 +1,4 @@
-package com.als.webIde.global;
+package com.als.webIde.DTO.etc;
 
 import lombok.Data;
 
