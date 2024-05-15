@@ -1,6 +1,8 @@
 package com.als.webIde.service;
 
 
+import com.als.webIde.DTO.etc.FileNameInvalidException;
+import com.als.webIde.DTO.etc.NotMyFileException;
 import com.als.webIde.DTO.request.AddFileDto;
 import com.als.webIde.DTO.request.FileUpdateDto;
 import com.als.webIde.DTO.response.CodeExecutionDto;
@@ -55,9 +57,9 @@ public class ContainerService {
 //            fileMap.put( ,"Main.java"); // 실제로는 생성된 팡닐 PK 가져오는 로직으로 변경
 //            fileListResponseDto.setFileList(fileMap);
         }
-        DTO dtoImpl = new DTO("성공", fileListResponseDto);
+        DTO dto = new DTO("성공", fileListResponseDto);
 
-        return ResponseEntity.ok(dtoImpl);
+        return ResponseEntity.ok(dto);
     }
 
     @Transactional(readOnly = true)
@@ -69,8 +71,8 @@ public class ContainerService {
         codeResponseDto.setFilename(correctFile.getFileTitle() + "." + correctFile.getSuffixFile());
         codeResponseDto.setCode(correctFile.getContentCd());
 
-        DTO dtoImpl = new DTO("성공", codeResponseDto);
-        return ResponseEntity.ok(dtoImpl);
+        DTO dto = new DTO("성공", codeResponseDto);
+        return ResponseEntity.ok(dto);
 
     }
 
@@ -79,6 +81,11 @@ public class ContainerService {
         if(fileName.contains(".java")){
             fileName= fileName.replace(".java","");
         }
+
+        if(!isValidClassName(fileName)){
+            throw new FileNameInvalidException();
+        }
+
         addFileDto.setFileName(fileName);
         File savedFile = fileRepository.save(addFileDto.toEntity());
 
@@ -87,9 +94,8 @@ public class ContainerService {
         codeResponseDto.setFilename(savedFile.getFileTitle() + "." +savedFile.getSuffixFile());
         codeResponseDto.setCode(savedFile.getContentCd());
 
-        DTO dtoImpl = new DTO("성공", codeResponseDto);
-        return ResponseEntity.ok(dtoImpl);
-
+        DTO dto = new DTO("성공", codeResponseDto);
+        return ResponseEntity.ok(dto);
     }
 
     public ResponseEntity<DTO> executeCode(MultipartFile file, String input){
@@ -106,32 +112,80 @@ public class ContainerService {
             // Java 코드 컴파일 및 실행
             String output = compileAndRunCode(className);
             codeExecutionDto.setResult(output);
-            DTO dtoImpl = new DTO("성공", codeExecutionDto);
+            DTO dto = new DTO("성공", codeExecutionDto);
 
-            return ResponseEntity.ok(dtoImpl);
+            return ResponseEntity.ok(dto);
         } catch (IOException | InterruptedException e) {
             throw new IllegalArgumentException("실패 : "+ e.getMessage());
         }
     }
 
     //파일 수정
-    public ResponseEntity<DTO> updateFile(Long fileId, Long userPk, String fileName, String fileCode) {
-        File correctFile = getCorrectFile(fileId, userPk);
+    public ResponseEntity<DTO> updateFile(Long userPk, FileUpdateDto updateDto) {
+        Long fileId = Long.valueOf(updateDto.getFileId());
+        String fileName = updateDto.getFileName();
+        String fileCode = updateDto.getFileCode();
 
-            correctFile.codeSave(fileName, fileCode);
-            FileUpdateDto fileUpdateDto = new FileUpdateDto();
-            fileUpdateDto.setFileId(String.valueOf(fileId));
-            fileUpdateDto.setFileName(fileName);
-            fileUpdateDto.setFileCode(fileCode);
-            DTO dtoImpl = new DTO("파일 수정 성공", fileUpdateDto);
-            return ResponseEntity.ok(dtoImpl);
+        //파일 Pk를 사용해 해당 유저의 파일이 맞는지 확인.
+        File presentFile = getCorrectFile(fileId, userPk);
+        String beforeFileName = presentFile.getFileTitle();
 
+        if (fileName.contains(".java")) {
+            fileName = fileName.replace(".java", "");
+        }
+
+        //사용자가 파일을 수정해서 보내면, 파일의 이름은 기존 파일 명이 될 것이고,
+        // 파일 코드내의 파일명(ex. class Main)은 그와 상이 할 수 있다.
+        // (파일 명만 수정하는 API가 없으므로) 그냥 파일 내에서 파일 명을 바꾸고 수정한다면,
+        // 그것에 맞게 파일명이 수정되도록 해야함.
+        String ClassName = extractClassName(fileCode);
+
+        if(!Objects.equals(ClassName, fileName)){
+            fileName=ClassName;
+        }
+
+        presentFile.codeSave(fileName, fileCode);
+        FileUpdateDto fileUpdateDto = new FileUpdateDto();
+        fileUpdateDto.setFileId(String.valueOf(fileId));
+        fileUpdateDto.setFileName(fileName+".java");
+        fileUpdateDto.setFileCode(fileCode);
+        DTO dto = new DTO("파일 수정 성공", fileUpdateDto);
+        return ResponseEntity.ok(dto);
+
+    }
+    // 코드중 파일 명 추출 매서드
+    private String extractClassName(String code) {
+        String className = "";
+        String[] lines = code.split("\\n");
+
+        for (String line : lines) {
+            line = line.trim();
+            if (line.startsWith("class ") || line.startsWith("Class ")) {
+                int startIndex = line.indexOf("class ") != -1 ? line.indexOf("class ") + 6 : line.indexOf("Class ") + 6;
+                int endIndex = line.indexOf("{", startIndex);
+                if (endIndex == -1) {
+                    endIndex = line.length();
+                }
+                className = line.substring(startIndex, endIndex).trim();
+                break;
+            }
+        }
+
+        System.out.println("className = " + className);
+        if(!isValidClassName(className)){
+            throw new FileNameInvalidException();
+        }
+        return className;
+    }
+
+    //파일명은 띄어쓰기 없이 영문자, 숫자로 구성 20자 이내.
+    private boolean isValidClassName(String className) {
+        return className.matches("[a-zA-Z0-9]{1,20}");
     }
 
     public ResponseEntity<String> deleteFile(Long filePk, Long memberPk) {
         File correctFile = getCorrectFile(filePk, memberPk);
         fileRepository.delete(correctFile);
-
         return ResponseEntity.ok("파일 삭제 성공");
     }
 
@@ -150,12 +204,9 @@ public class ContainerService {
         if(correctFile!=null){
             return correctFile;
         }else{
-            throw new NoSuchElementException("내 파일이 아닙니다.");
+            throw new NotMyFileException();
         }
-
     }
-
-
 
     /**
      * .java 소스 파일을 Docker 볼륨에 저장.

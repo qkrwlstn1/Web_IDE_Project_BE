@@ -24,11 +24,6 @@ public class ContainerController {
     private final MemberRepository memberRepository;
 
 
-    @GetMapping("/test")
-    public String test(){
-        return "test!";
-    }
-
     //FileList갱신
     @GetMapping
     public ResponseEntity<DTO> getFileList(){
@@ -53,18 +48,10 @@ public class ContainerController {
     }
 
     //파일 수정
-    // 파일 명을 입력받고 코드내의 파일 명과 일치하도록 변경해야할듯.
-    // 코드내에선 파일명을 바꿨는데, 파일 명은 그와 상이하면 안되므로, 변경하도록 해야할것 같음.
     @PutMapping("/file/{fileId}")
-    public ResponseEntity<DTO> fileSave(@RequestBody FileUpdateDto requestDto){
+    public ResponseEntity<DTO> updateFile(@RequestBody FileUpdateDto requestDto){
         long memberPk = getMemberPk();
-        Long fileId = Long.valueOf(requestDto.getFileId());
-        String fileName = requestDto.getFileName();
-        String fileCode = requestDto.getFileCode();
-        if(fileName.contains(".java")){
-            fileName= fileName.replace(".java","");
-        }
-        return containerService.updateFile(fileId,memberPk ,fileName, fileCode);
+        return containerService.updateFile(memberPk,requestDto);
     }
 
     //파일 생성
