@@ -1,9 +1,9 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: backend
 spec:
+  replicas: 1
   selector:
     matchLabels:
       app: backend
@@ -14,30 +14,38 @@ spec:
     spec:
       containers:
         - name: backend
-          # 여러분의 backend image 주소를 입력해주세요.
           image: krmp-d2hub-idock.9rum.cc/dev-test/repo_a9e11c0e3efd
           env:
             - name: TZ
               value: Asia/Seoul
             - name: SPRING_DATASOURCE_URL
-              value: "jdbc:mysql://mysql-service:3306/krampoline"
+              value: "jdbc:mysql://mysql:3306/krampoline"
             - name: SPRING_DATASOURCE_USERNAME
               value: "root"
             - name: SPRING_DATASOURCE_PASSWORD
-              value: "root"
+              value: "rootpassword"
             - name: SPRING_REDIS_HOST
               value: "redis"
             - name: SPRING_REDIS_PORT
               value: "6379"
             - name: SPRING_MAIL_AUTH_CODE_EXPIRATION_MILLIS
               value: "1800000"
-          resources:
-            requests:
-              memory: 1Gi
           readinessProbe:
             httpGet:
               path: /api/test
               port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/test
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          volumeMounts:
+            - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+              name: default-token-fswpd
+              readOnly: true
 ---
 apiVersion: v1
 kind: Service
