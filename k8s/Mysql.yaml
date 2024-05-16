@@ -47,7 +47,7 @@ spec:
         - name: mysql-data
           persistentVolumeClaim:
             claimName: mysql-pvc
-
+---
 apiVersion: v1
 kind: Service
 metadata:
