@@ -10,7 +10,7 @@
             background-color: #f9f9f9;
             border-radius: 8px;
             padding: 10px;
-            width: 300px;
+            width: calc(100% - 22px);
             height: 400px;
             overflow-y: auto;
             margin-bottom: 10px;
@@ -19,12 +19,19 @@
             width: calc(100% - 22px);
             margin-bottom: 5px;
         }
+        #idAndMessageContainer{
+            display: flex;
+        }
     </style>
 </head>
 <body>
+
 <div id="chat"></div>
+<idv id="idAndMessageContainer">
 <input type="text" id="idInput" placeholder="Type a id..." readonly>
 <input type="text" id="messageInput" onkeyup="enterkey();" placeholder="Type a message...">
+
+</idv>
 <button onclick="sendMessage()">Send</button>
 
 <script>
@@ -40,14 +47,14 @@
     });
 
     function setupSubscriptions() {
-        stompClient.subscribe('/topic/messages', function (messageOutput) {
+        stompClient.subscribe('/chat/server/messages', function (messageOutput) {
             displayMessage(messageOutput.body);
         });
-        stompClient.subscribe('/topic/welcome', function (nickname) {
+        stompClient.subscribe('/chat/server/enter', function (nickname) {
             updateNickname(nickname.body);
             showMessageOutput('[' + nickname.body + '] 님 환영합니다~');
         });
-        stompClient.subscribe('/topic/bye', function (nickname) {
+        stompClient.subscribe('/chat/server/exit', function (nickname) {
             showMessageOutput('[' + nickname.body + '] 님 byebye~~');
         });
     }
@@ -65,7 +72,7 @@
     // 입장 처리 함수
     function onConnect() {
         var userInfo = {userId: 1, roomId: 1};
-        stompClient.send("/app/enter", {}, JSON.stringify(userInfo));
+        stompClient.send("/chat/client/enter", {}, JSON.stringify(userInfo));
     }
 
     // 메시지 전송 함수
@@ -73,7 +80,7 @@
         var messageContent = document.getElementById('messageInput').value.trim();
         if (messageContent && stompClient) {
             var chatMessage = { messageContent: messageContent, memberId: 1, chattingRoomId: 1 };
-            stompClient.send("/app/chatting", {}, JSON.stringify(chatMessage));
+            stompClient.send("/chat/client/chatting", {}, JSON.stringify(chatMessage));
             document.getElementById('messageInput').value = '';
         }
     }
@@ -98,7 +105,7 @@
     function disconnect() {
         if (stompClient !== null) {
             var userInfo = {userId: 1, roomId: 1};
-            stompClient.send("/app/exit", {}, JSON.stringify(userInfo));
+            stompClient.send("/chat/client/exit", {}, JSON.stringify(userInfo));
             stompClient.disconnect();
             console.log("Disconnected");
         }
