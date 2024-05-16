@@ -1,11 +1,73 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+spec:
+  serviceName: mysql
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: "krmp-d2hub-idock.9rum.cc/dev-test/repo_ac5ae1247df8"
+          env:
+            - name: TZ
+              value: "Asia/Seoul"
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: root-password
+            - name: MYSQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: database-name
+            - name: MYSQL_DISABLE_UPGRADE_BACKUP
+              value: "1"
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: data
+              subPath: mysql
+            - mountPath: /docker-entrypoint-initdb.d
+              name: init-db
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "1.5Gi"
+              cpu: "1"
+          readinessProbe:
+            tcpSocket:
+              port: 3306
+      volumes:
+        - name: init-db
+          configMap:
+            name: init-db
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+---
 apiVersion: v1
 kind: Service
 metadata:
   name: mysql
-  namespace: krampoline
 spec:
-  ports:
-    - port: 3306
-      targetPort: 3306
+  type: ClusterIP
+  clusterIP: None
   selector:
     app: mysql
+  ports:
+    - port: 3306
