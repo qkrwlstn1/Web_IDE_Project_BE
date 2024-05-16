@@ -1,10 +1,7 @@
 package com.als.webIde.domain.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Getter
 @Entity
@@ -23,5 +20,14 @@ public class Member {
 
     @Column(name = "password", nullable = false)
     private String password;
+
+//    @Override
+//    public String toString() {
+//        return "Member{" +
+//                "userPk=" + userPk +
+//                ", userId='" + userId + '\'' +
+//                ", password='" + password + '\'' +
+//                '}';
+//    }
 
 }
