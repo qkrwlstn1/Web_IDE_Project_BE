@@ -1,25 +1,30 @@
 package com.als.webIde.domain.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.io.Serializable;
-import java.util.Objects;
-
-@Getter
 @Entity
-@Table(name = "file")
-@Builder
-@AllArgsConstructor
+@Getter
+@Setter
 @NoArgsConstructor
+@Table(name = "file")
 public class File {
-    @EmbeddedId
-    private FileId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "file_pk")
+    private Long filePk;
 
-    @MapsId("directoryPk")
-    @ManyToOne
-    @JoinColumn(name = "directory_pk")
-    private Directory directory;
+    @Column(name = "user_pk", nullable = false)
+    private Long userPk;
+
+    @Column(name = "suffix_file", nullable = false)
+    private String suffixFile;
 
     @Column(name = "content_cd")
     private String contentCd;
@@ -27,30 +32,30 @@ public class File {
     @Column(name = "file_title", nullable = false)
     private String fileTitle;
 
-    @Column(name = "suffix_file", nullable = false)
-    private String suffixFile;
-}
+    @Column(name = "path", nullable = false)
+    private String path;
 
-@Embeddable
-class FileId implements Serializable {
-    @Column(name = "file_pk")
-    private Long filePk;
+    @ManyToOne
+    @JoinColumn(name = "user_pk", insertable = false, updatable = false)
+    private Member member;
 
-    @Column(name = "directory_pk")
-    private Long directoryPk;
+    //    @ManyToOne
+//    @JoinColumn(name = "container_pk", insertable = false, updatable = false)
+//    private Container container;
 
-    // equals() and hashCode() methods
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        FileId that = (FileId) o;
-        return Objects.equals(filePk, that.filePk) &&
-                Objects.equals(directoryPk, that.directoryPk);
+    public void codeSave(String fileTitle, String contentCd){
+        this.fileTitle = fileTitle;
+        this.contentCd = contentCd;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(filePk, directoryPk);
+    @Builder
+    public File(Long userPk, String fileTitle, String suffixFile,String contentCd, String path) {
+        this.userPk = userPk;
+        this.fileTitle = fileTitle;
+        this.contentCd = contentCd;
+        this.suffixFile = suffixFile;
+        this.path = path;
     }
+
+
 }

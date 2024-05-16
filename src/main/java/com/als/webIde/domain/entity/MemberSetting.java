@@ -1,7 +1,17 @@
 package com.als.webIde.domain.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.MapsId;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
@@ -10,15 +20,20 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MemberSetting {
-    @Id
-    @OneToOne
-    @JoinColumn(name = "member_pk")
+
+    @EmbeddedId
+    private MemberSettingId MemberId;
+
+    @MapsId("member")
+    @OneToOne(cascade = CascadeType.MERGE)
+    @JoinColumn(name = "user_pk")
     private Member member;
 
-    @Column(name = "Thema", nullable = false)
-    private String thema;
+    @Builder.Default
+    @Column(name = "Theme", nullable = false)
+    private String theme="white";
 
     @Column(name = "nickname", nullable = false)
     private String nickname;
-
 }
+

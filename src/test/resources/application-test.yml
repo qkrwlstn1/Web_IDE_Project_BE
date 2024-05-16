@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: webIde
+  output:
+    ansi:
+      enabled : always
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3308/test_docker_root
+    username: root
+    password : "!db1234"
+  jpa:
+    properties:
+      hibernate:
+      show_sql: true
+      format_sql: true
+      ddl-auto: create-drop
+    database-platform : org.hibernate.dialect.MySQLDialect

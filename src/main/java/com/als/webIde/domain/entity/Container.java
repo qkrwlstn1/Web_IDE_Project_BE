@@ -1,50 +1,17 @@
 package com.als.webIde.domain.entity;
-
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Builder;
+import lombok.Getter;
 
-import java.io.Serializable;
-import java.util.Objects;
-
-@Getter
 @Entity
 @Table(name = "container")
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
 public class Container {
-    @EmbeddedId
-    private ContainerId id;
-
-    @MapsId("userPk")
-    @ManyToOne
-    @JoinColumn(name = "user_pk")
-    private Member member;
-
-    @Column(name = "title")
-    private String title;
-}
-
-@Embeddable
-class ContainerId implements Serializable {
+    @Id
     @Column(name = "container_pk")
-    private Long containerPk;
+    private Long containerPk;//컨테이너 아이디
 
-    @Column(name = "user_pk")
-    private Long userPk;
+    @OneToOne
+    @JoinColumn(name = "user_pk", insertable = false, updatable = false)
+    private Member userPk;// 회원 번호
 
-    // equals() and hashCode() methods
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ContainerId that = (ContainerId) o;
-        return Objects.equals(containerPk, that.containerPk) &&
-                Objects.equals(userPk, that.userPk);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(containerPk, userPk);
-    }
 }
