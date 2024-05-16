@@ -1,61 +1,65 @@
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mysql-pvc
-  namespace: krampoline  # 네임스페이스 수정
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: mysql
-  namespace: krampoline  # 네임스페이스 수정
+  name: mariadb
 spec:
+  serviceName: mariadb
   selector:
     matchLabels:
-      app: mysql
+      app: mariadb
   template:
     metadata:
       labels:
-        app: mysql
+        app: mariadb
     spec:
       containers:
-        - name: mysql
-          image: mysql:latest
+        - name: mariadb
+          # 여러분의 mariadb image 주소를 입력해주세요.
+          image: krmp-d2hub-idock.9rum.cc/dev-test/repo_d43a077541a8
           env:
-            - name: MYSQL_ROOT_PASSWORD
-              value: "!db1234"
-            - name: MYSQL_PASSWORD
-              value: "!als1234"
-            - name: MYSQL_DATABASE
-              value: als_ide_db
-            - name: MYSQL_USER
-              value: user
             - name: TZ
               value: Asia/Seoul
-          ports:
-            - containerPort: 3306
+            - name: MARIADB_ROOT_PASSWORD
+              value: root
+            - name: MARIADB_DATABASE
+              value: krampoline
+            - name: MARIADB_DISABLE_UPGRADE_BACKUP
+              value: '1'
           volumeMounts:
-            - name: mysql-data
-              mountPath: /var/lib/mysql
+            - mountPath: /var/lib/mysql
+              name: data
+              subPath: mysql
+            - mountPath: /docker-entrypoint-initdb.d
+              name: init-db
+          resources:
+            limits:
+              memory: 1Gi
+          readinessProbe:
+            tcpSocket:
+              port: 3306
       volumes:
-        - name: mysql-data
-          persistentVolumeClaim:
-            claimName: mysql-pvc
+        - name: init-db
+          configMap:
+            name: init-db
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: mysql
-  namespace: krampoline  # 네임스페이스 수정
+  name: mariadb
 spec:
   type: ClusterIP
+  clusterIP: None # Headless
+  selector:
+    app: mariadb
   ports:
     - port: 3306
-  selector:
-    app: mysql
