@@ -1,10 +1,21 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+  namespace: krampoline
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: mysql
   namespace: krampoline
 spec:
-  serviceName: mysql
   selector:
     matchLabels:
       app: mysql
@@ -17,50 +28,25 @@ spec:
         - name: mysql
           image: mysql:latest
           env:
-            - name: TZ
-              value: "Asia/Seoul"
             - name: MYSQL_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: db-secret
-                  key: root-password
+              value: "!db1234"
+            - name: MYSQL_PASSWORD
+              value: "!als1234"
             - name: MYSQL_DATABASE
-              valueFrom:
-                secretKeyRef:
-                  name: db-secret
-                  key: database-name
-            - name: MYSQL_DISABLE_UPGRADE_BACKUP
-              value: "1"
+              value: als_ide_db
+            - name: MYSQL_USER
+              value: user
+            - name: TZ
+              value: Asia/Seoul
+          ports:
+            - containerPort: 3306
           volumeMounts:
-            - mountPath: /var/lib/mysql
-              name: data
-              subPath: mysql
-            - mountPath: /docker-entrypoint-initdb.d
-              name: init-db
-          resources:
-            requests:
-              memory: "1Gi"
-              cpu: "500m"
-            limits:
-              memory: "1.5Gi"
-              cpu: "1"
-          readinessProbe:
-            tcpSocket:
-              port: 3306
+            - name: mysql-data
+              mountPath: /var/lib/mysql
       volumes:
-        - name: init-db
-          configMap:
-            name: init-db
-  volumeClaimTemplates:
-    - metadata:
-        name: data
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: 1Gi
----
+        - name: mysql-data
+          persistentVolumeClaim:
+            claimName: mysql-pvc
 
 apiVersion: v1
 kind: Service
@@ -69,8 +55,7 @@ metadata:
   namespace: krampoline
 spec:
   type: ClusterIP
-  clusterIP: None
-  selector:
-    app: mysql
   ports:
     - port: 3306
+  selector:
+    app: mysql
