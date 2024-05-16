@@ -17,7 +17,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Transactional
 public class ChatServiceImpl implements ChatService{
-    private final MemberRepositpory memberRepository;
+    private final MemberRepository memberRepository;
     private final MemberSettingRepository memberSettingRepository;
     private final ChattingRoomRepository chattingRoomRepository;
     private final ChattingMemberRepository chattingMemberRepository;
