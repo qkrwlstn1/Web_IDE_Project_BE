@@ -2,11 +2,13 @@ package com.als.webIde.DTO.response;
 
 import com.als.webIde.domain.entity.ChattingMessage;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-@Data
+@Setter @Getter
 @NoArgsConstructor
 public class ChattingMessageResponseDTO {
     private Long messageId;
