@@ -1,6 +1,10 @@
 package com.als.webIde.service;
 
 
+
+import com.als.webIde.DTO.etc.FileNameInvalidException;
+import com.als.webIde.DTO.etc.NotMyFileException;
+
 import com.als.webIde.DTO.request.AddFileDto;
 import com.als.webIde.DTO.request.FileUpdateDto;
 import com.als.webIde.DTO.response.CodeExecutionDto;
@@ -9,7 +13,9 @@ import com.als.webIde.DTO.response.FileListResponseDto;
 import com.als.webIde.domain.entity.File;
 import com.als.webIde.domain.repository.ContainerRepository;
 import com.als.webIde.domain.repository.FileRepository;
-import com.als.webIde.global.DTO;
+
+import com.als.webIde.DTO.etc.DTO;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 
 @Service
 @RequiredArgsConstructor
@@ -35,10 +40,7 @@ public class ContainerService {
     private String compilerContainerName;
 
 
-    @Transactional(readOnly = true)
     public ResponseEntity<DTO> getFileList(Long userId) {
-//        Long containerId = containerRepository.findByMemberUserPk(userId);
-//        List<File> fileList = fileRepository.findAllByContainerPk(containerId);
         List<File> files = fileRepository.findAllByMember_UserPk(userId);
 
         Map<Long, String> fileMap = new HashMap<>();
@@ -52,9 +54,16 @@ public class ContainerService {
             }
             fileListResponseDto.setFileList(fileMap);
         }else{
-            //기본파일 생성 로직??
-            fileMap.put(1L,"Main.java"); // 실제로는 생성된 팡닐 PK 가져오는 로직으로 변경
-            fileListResponseDto.setFileList(fileMap);
+
+            // 기본 파일 생성 메서드 호출
+            AddFileDto addFileDto = new AddFileDto();
+            addFileDto.setUserPk(userId);
+            addFileDto.setFileName("Main");
+            createFile(addFileDto);
+            return getFileList(userId);
+//            fileMap.put( ,"Main.java"); // 실제로는 생성된 팡닐 PK 가져오는 로직으로 변경
+//            fileListResponseDto.setFileList(fileMap);
+
         }
         DTO dto = new DTO("성공", fileListResponseDto);
 
@@ -62,33 +71,39 @@ public class ContainerService {
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<DTO> getCode(long fileId, long userId){
-        List<File> files = fileRepository.findAllByMember_UserPk(userId);
-        File file = fileRepository.findByFilePk(fileId);
-        File correctFile = null;
+    public ResponseEntity<DTO> getCode(Long fileId, Long userId) {
+        File correctFile = getCorrectFile(fileId, userId);
 
-        for(File f : files){
-            if(f.equals(file)){
-                correctFile=f;
-            }
-        }
+        CodeResponseDto codeResponseDto = new CodeResponseDto();
+        codeResponseDto.setFileId(fileId);
+        codeResponseDto.setFilename(correctFile.getFileTitle() + "." + correctFile.getSuffixFile());
+        codeResponseDto.setCode(correctFile.getContentCd());
 
-        if(correctFile==null){
-            throw new IllegalArgumentException("파일이 없습니다.");
-        }else{
-            CodeResponseDto codeResponseDto = new CodeResponseDto();
-            codeResponseDto.setFileId(fileId);
-            codeResponseDto.setFilename(file.getFileTitle() + "." +file.getSuffixFile());
-            codeResponseDto.setCode(file.getContentCd());
-
-            DTO dto = new DTO("성공", codeResponseDto);
-            return ResponseEntity.ok(dto);
-        }
+        DTO dto = new DTO("성공", codeResponseDto);
+        return ResponseEntity.ok(dto);
 
     }
 
-    public void createFile(AddFileDto dto) {
-        fileRepository.save(dto.toEntity());
+    public ResponseEntity<DTO> createFile(AddFileDto addFileDto) {
+        String fileName = addFileDto.getFileName();
+        if(fileName.contains(".java")){
+            fileName= fileName.replace(".java","");
+        }
+
+        if(!isValidClassName(fileName)){
+            throw new FileNameInvalidException();
+        }
+
+        addFileDto.setFileName(fileName);
+        File savedFile = fileRepository.save(addFileDto.toEntity());
+
+        CodeResponseDto codeResponseDto = new CodeResponseDto();
+        codeResponseDto.setFileId(savedFile.getFilePk());
+        codeResponseDto.setFilename(savedFile.getFileTitle() + "." +savedFile.getSuffixFile());
+        codeResponseDto.setCode(savedFile.getContentCd());
+
+        DTO dto = new DTO("성공", codeResponseDto);
+        return ResponseEntity.ok(dto);
     }
 
     public ResponseEntity<DTO> executeCode(MultipartFile file, String input){
@@ -112,14 +127,94 @@ public class ContainerService {
             throw new IllegalArgumentException("실패 : "+ e.getMessage());
         }
     }
-    public ResponseEntity<DTO> saveFile(Long id, String fileName, String fileCode) {
-        File file = fileRepository.findByFilePk(id);
-        file.codeSave(fileName,fileCode);
+
+    //파일 수정
+    public ResponseEntity<DTO> updateFile(Long userPk, FileUpdateDto updateDto) {
+        Long fileId = Long.valueOf(updateDto.getFileId());
+        String fileName = updateDto.getFileName();
+        String fileCode = updateDto.getFileCode();
+
+        //파일 Pk를 사용해 해당 유저의 파일이 맞는지 확인.
+        File presentFile = getCorrectFile(fileId, userPk);
+        String beforeFileName = presentFile.getFileTitle();
+
+        if (fileName.contains(".java")) {
+            fileName = fileName.replace(".java", "");
+        }
+
+        //사용자가 파일을 수정해서 보내면, 파일의 이름은 기존 파일 명이 될 것이고,
+        // 파일 코드내의 파일명(ex. class Main)은 그와 상이 할 수 있다.
+        // (파일 명만 수정하는 API가 없으므로) 그냥 파일 내에서 파일 명을 바꾸고 수정한다면,
+        // 그것에 맞게 파일명이 수정되도록 해야함.
+        String ClassName = extractClassName(fileCode);
+
+        if(!Objects.equals(ClassName, fileName)){
+            fileName=ClassName;
+        }
+
+        presentFile.codeSave(fileName, fileCode);
         FileUpdateDto fileUpdateDto = new FileUpdateDto();
-        fileUpdateDto.setFileName(fileName);
+        fileUpdateDto.setFileId(String.valueOf(fileId));
+        fileUpdateDto.setFileName(fileName+".java");
         fileUpdateDto.setFileCode(fileCode);
-        DTO dto = new DTO("파일 저장 성공", fileUpdateDto);
+        DTO dto = new DTO("파일 수정 성공", fileUpdateDto);
         return ResponseEntity.ok(dto);
+
+    }
+    // 코드중 파일 명 추출 매서드
+    private String extractClassName(String code) {
+        String className = "";
+        String[] lines = code.split("\\n");
+
+        for (String line : lines) {
+            line = line.trim();
+            if (line.startsWith("class ") || line.startsWith("Class ")) {
+                int startIndex = line.indexOf("class ") != -1 ? line.indexOf("class ") + 6 : line.indexOf("Class ") + 6;
+                int endIndex = line.indexOf("{", startIndex);
+                if (endIndex == -1) {
+                    endIndex = line.length();
+                }
+                className = line.substring(startIndex, endIndex).trim();
+                break;
+            }
+        }
+
+        System.out.println("className = " + className);
+        if(!isValidClassName(className)){
+            throw new FileNameInvalidException();
+        }
+        return className;
+    }
+
+    //파일명은 띄어쓰기 없이 영문자, 숫자로 구성 20자 이내.
+    private boolean isValidClassName(String className) {
+        return className.matches("[a-zA-Z0-9]{1,20}");
+    }
+
+    public ResponseEntity<String> deleteFile(Long filePk, Long memberPk) {
+        File correctFile = getCorrectFile(filePk, memberPk);
+        fileRepository.delete(correctFile);
+        return ResponseEntity.ok("파일 삭제 성공");
+    }
+
+
+    //요청받은 파일이 유저의 파일이 맞는지 검증하고, 맞는 파일객체를 반환.
+    private File getCorrectFile(Long fileId, Long userPk) {
+        List<File> files = fileRepository.findAllByMember_UserPk(userPk);
+        File correctFile = null;
+        for (File file : files) {
+            Long filePk = file.getFilePk();
+            if(Objects.equals(filePk, fileId)){
+                correctFile = file;
+                break;
+            }
+        }
+        if(correctFile!=null){
+            return correctFile;
+        }else{
+            throw new NotMyFileException();
+        }
+
     }
 
     /**
@@ -179,5 +274,7 @@ public class ContainerService {
             return output.toString();
         }
     }
+
+
 
 }
