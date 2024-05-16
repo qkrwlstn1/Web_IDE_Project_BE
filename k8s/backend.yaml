@@ -25,26 +25,6 @@ spec:
               value: "root"
             - name: SPRING_DATASOURCE_PASSWORD
               value: "root"
-            - name: SPRING_MAIL_HOST
-              value: "smtp.gmail.com"
-            - name: SPRING_MAIL_PORT
-              value: "587"
-            - name: SPRING_MAIL_USERNAME
-              value: "soeun.love.lee@gmail.com"
-            - name: SPRING_MAIL_PASSWORD
-              value: "srxtmqjtjdtescnd"
-            - name: SPRING_MAIL_SMTP_AUTH
-              value: "true"
-            - name: SPRING_MAIL_SMTP_STARTTLS_ENABLE
-              value: "true"
-            - name: SPRING_MAIL_SMTP_STARTTLS_REQUIRED
-              value: "true"
-            - name: SPRING_MAIL_SMTP_CONNECTIONTIMEOUT
-              value: "5000"
-            - name: SPRING_MAIL_SMTP_TIMEOUT
-              value: "5000"
-            - name: SPRING_MAIL_SMTP_WRITETIMEOUT
-              value: "5000"
             - name: SPRING_REDIS_HOST
               value: "redis"
             - name: SPRING_REDIS_PORT
