@@ -20,7 +20,7 @@ spec:
             - name: TZ
               value: Asia/Seoul
             - name: SPRING_DATASOURCE_URL
-              value: "jdbc:mysql://mariadb:3306/krampoline"
+              value: "jdbc:mysql://mysql-service:3306/krampoline"
             - name: SPRING_DATASOURCE_USERNAME
               value: "root"
             - name: SPRING_DATASOURCE_PASSWORD
