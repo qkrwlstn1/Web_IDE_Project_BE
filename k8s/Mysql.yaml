@@ -2,7 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: mysql-pvc
-  namespace: krampoline
+  namespace: krampoline  # 네임스페이스 수정
 spec:
   accessModes:
     - ReadWriteOnce
@@ -14,7 +14,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mysql
-  namespace: krampoline
+  namespace: krampoline  # 네임스페이스 수정
 spec:
   selector:
     matchLabels:
@@ -52,7 +52,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mysql
-  namespace: krampoline
+  namespace: krampoline  # 네임스페이스 수정
 spec:
   type: ClusterIP
   ports:
