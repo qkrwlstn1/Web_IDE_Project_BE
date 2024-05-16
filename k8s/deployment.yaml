@@ -17,10 +17,7 @@ spec:
           image: krmp-d2hub-idock.9rum.cc/dev-test/repo_a9e11c0e3efd:latest
           env:
             - name: DB_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: server-secret
-                  key: host
+              value: mysql.krampoline.svc.cluster.local
             - name: DB_NAME
               valueFrom:
                 secretKeyRef:
@@ -37,10 +34,7 @@ spec:
                   name: server-secret
                   key: root-password
             - name: DB_PORT
-              valueFrom:
-                secretKeyRef:
-                  name: server-secret
-                  key: port
+              value: "3306"
             - name: SECRET_KEY
               valueFrom:
                 secretKeyRef:
@@ -49,8 +43,9 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
-
+            
 ---
+
 apiVersion: v1
 kind: Service
 metadata:
