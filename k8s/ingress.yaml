@@ -1,15 +1,13 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: backend
-  namespace: krampoline
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: 64m
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
   labels:
     app.kubernetes.io/managed-by: kargocd
   name: backend
-  namespace: default
+  namespace: krampoline
 spec:
   rules:
     - http:
