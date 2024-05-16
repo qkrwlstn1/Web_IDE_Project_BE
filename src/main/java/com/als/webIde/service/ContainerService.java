@@ -37,16 +37,17 @@ public class ContainerService {
 
     public ResponseEntity<DTO> getFileList(Long userId) {
         List<File> files = fileRepository.findAllByMember_UserPk(userId);
-        Map<Long, String> fileMap = new HashMap<>();
         FileListResponseDto fileListResponseDto = new FileListResponseDto();
+        List<FileListResponseDto.FileResponseDto> fileDtos = new ArrayList<>();
 
-        if (files.size() != 0) {
+        if (!files.isEmpty()) {
             for (File f : files) {
-                Long id = f.getFilePk();
-                String filename = f.getFileTitle() + "." + f.getSuffixFile();
-                fileMap.put(id, filename);
+                FileListResponseDto.FileResponseDto fileDto = new FileListResponseDto.FileResponseDto();
+                fileDto.setFileId(f.getFilePk());
+                fileDto.setFileName(f.getFileTitle() + "." + f.getSuffixFile());
+                fileDtos.add(fileDto);
             }
-            fileListResponseDto.setFileList(fileMap);
+            fileListResponseDto.setFileList(fileDtos);
         }else{
             // 기본 파일 생성 메서드 호출
             AddFileDto addFileDto = new AddFileDto();
@@ -54,11 +55,9 @@ public class ContainerService {
             addFileDto.setFileName("Main");
             createFile(addFileDto);
             return getFileList(userId);
-//            fileMap.put( ,"Main.java"); // 실제로는 생성된 팡닐 PK 가져오는 로직으로 변경
-//            fileListResponseDto.setFileList(fileMap);
+
         }
         DTO dto = new DTO("성공", fileListResponseDto);
-
         return ResponseEntity.ok(dto);
     }
 
@@ -187,6 +186,10 @@ public class ContainerService {
         File correctFile = getCorrectFile(filePk, memberPk);
         fileRepository.delete(correctFile);
         return ResponseEntity.ok("파일 삭제 성공");
+    }
+
+    private void checkDuplicateFileName(){
+
     }
 
 
