@@ -4,3 +4,4 @@ resources:
   - service.yaml
   - ingress.yaml
   - Mysql.yaml
+  - server-secret.yaml
