@@ -20,4 +20,10 @@ public class GlobalExceptionHandler {
         String message = "파일명은 띄어쓰기 없이 영문자 및 숫자로 20자 이내여야 합니다.";
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("message : " + message);
     }
+    @ExceptionHandler(DuplicateFileNameException.class)
+    protected ResponseEntity<?> DuplicateFileNameException(DuplicateFileNameException e) {
+        String message = "이미 존재하는 파일명입니다.";
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("message : " + message);
+    }
+
 }
