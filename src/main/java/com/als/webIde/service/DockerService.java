@@ -15,10 +15,12 @@ public interface DockerService {
      * @param containerId 종료되는 컨테이너 ID
      */
     void stopAndRemoveContainer(String containerId);
+
     String findContainerByUserId(String userId);
-    List<String> listUserContainers(String userId);
+
+//    List<String> listUserContainers(String userId);
     void test();
 
-    String executeCommand(String containerId, String command);
+    String executeCommand(String containerId, String command, String input, String s);
 
 }
