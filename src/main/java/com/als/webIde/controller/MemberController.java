@@ -98,7 +98,7 @@ public class MemberController {
 
         log.info("여기까지 왔다요");
 
-        dockerService.createAndStartContainer(String.valueOf(member.getUserPk()));
+//        dockerService.createAndStartContainer(String.valueOf(member.getUserPk()));
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Authorization","Bearer "+token.getAccessToken());

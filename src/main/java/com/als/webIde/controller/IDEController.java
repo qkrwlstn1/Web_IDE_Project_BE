@@ -1,21 +1,19 @@
 package com.als.webIde.controller;
 
 import com.als.webIde.DTO.etc.CustomUserDetails;
+import com.als.webIde.DTO.etc.DTO;
 import com.als.webIde.DTO.request.AddFileDto;
+import com.als.webIde.DTO.request.CodeExecutionRequestDto;
 import com.als.webIde.DTO.request.FileUpdateDto;
 import com.als.webIde.domain.entity.Member;
 import com.als.webIde.domain.repository.MemberRepository;
-
-import com.als.webIde.DTO.etc.DTO;
-
-import com.als.webIde.service.IDEService;
 import com.als.webIde.service.DockerServiceImpl;
+import com.als.webIde.service.IDEService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @RestController
@@ -52,12 +50,10 @@ public class IDEController {
     }
 
     // 코드 실행
-    // 아마 파일 자체가 아니라 텍스트로 받게 되면, 코드 수정 해야함.
     @PostMapping("/execute")
-    public ResponseEntity<DTO> executeCode(@RequestParam("file") MultipartFile file,
-                                               @RequestParam("input") String input) {
+    public ResponseEntity<DTO> executeCode(@RequestBody CodeExecutionRequestDto codeExecutionRequestDto) {
         long memberPk = getMemberPk();
-        return IDEService.executeCode(file, input, memberPk);
+        return IDEService.executeCode(codeExecutionRequestDto, memberPk);
     }
 
     //파일 수정
@@ -78,7 +74,7 @@ public class IDEController {
     @DeleteMapping("/container")
     public ResponseEntity<String> stopAndRemoveContainer() {
         long memberPk = getMemberPk();
-        String containerId = dockerService.findContainerByUserId(String.valueOf(memberPk));
+        String containerId = dockerService.findContainerByUserPk(String.valueOf(memberPk));
         dockerService.stopAndRemoveContainer(containerId);
         return ResponseEntity.ok("컨테이너 종료.");
 

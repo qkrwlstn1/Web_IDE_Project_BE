@@ -42,9 +42,9 @@ public class DockerServiceImpl implements DockerService {
             Container dbContainer = new Container();
             dbContainer.setDockerId(container.getId());
             dbContainer.setMember(memberRepository.findById(Long.parseLong(userId)).orElseThrow(
-                    () -> new IllegalArgumentException("Invalid user ID")));
+                    () -> new IllegalArgumentException("유효하지 않은 유저")));
             containerRepository.save(dbContainer);
-
+            containerRepository.flush();
             // 컨테이너 시작
             dockerClient.startContainerCmd(container.getId()).exec();
             return container.getId();
@@ -52,6 +52,7 @@ public class DockerServiceImpl implements DockerService {
             log.error("컨테이너 생성에 실패했습니다", e);
             throw new CustomException(CustomErrorCode.CONTAINER_CREATE_FAIL);
         }
+
     }
 
     //로그아웃시에는 이 코드 호출
@@ -104,36 +105,76 @@ public class DockerServiceImpl implements DockerService {
         }
     }
 
+    // 코드 실행 전 DB와 도커 데스크탑상 컨테이너가 동일한지, 유지되고 있는지 확인하고,
+    //실행하도록 로직 분리
     @Override
-    public String findContainerByUserId(String userId) {
-        Optional<Container> dbContainerOpt = containerRepository.findByMemberUserPk(Long.valueOf(userId));
-        if (dbContainerOpt.isPresent()) {
-            Container dbContainer = dbContainerOpt.get();
-            // 실제 Docker 환경에서 컨테이너의 존재 여부를 확인
-            try {
-                dockerClient.inspectContainerCmd(dbContainer.getDockerId()).exec();
-                return dbContainer.getDockerId(); // 컨테이너가 존재하는 경우, ID 반환
-            } catch (NotFoundException e) {
-                // 컨테이너가 존재하지 않는 경우, 새 컨테이너를 생성
-                return recreateAndSaveContainer(userId, dbContainer);
-            }
-        } else {
-            // DB에 컨테이너 정보가 없는 경우, 새 컨테이너를 생성
-            return createAndStartContainer(String.valueOf(userId));
-        }
-    }
+    public String findContainerByUserPk(String userPk) {
+        Optional<Container> container = containerRepository.findByMemberUserPk(Long.valueOf(userPk));
 
-    @Transactional
-    public String recreateAndSaveContainer(String userId, Container dbContainer) {
-        // 기존 컨테이너 정보 삭제
-        containerRepository.deleteById(dbContainer.getContainerPk());
-        // 삭제 확인 로직
-        if (containerRepository.existsById(dbContainer.getContainerPk())) {
-            throw new IllegalStateException("삭제되지 않은 컨테이너 정보가 존재합니다.");
+        if (container.isPresent()) { //DB상에는 도커 컨테이너 정보가 있음.
+            Container DBContainer = container.get();
+            System.out.println("db상 도커 ID : " + DBContainer.getDockerId());
+            String dockerId = DBContainer.getDockerId();
+            try {
+                // 실제 Docker 환경에서 컨테이너의 존재 여부와 그게 DB상 컨테이너와 동일한지 확인
+                dockerClient.inspectContainerCmd(dockerId).exec();
+            } catch (NotFoundException e) {
+                //DB상에는 있는데, 도커 데스크탑에선 없는 경우.
+                // ->DB날리고 재 설정
+                System.out.println(" DB상에는 있는데, 도커 데스크탑에선 없는 경우.");
+                containerRepository.deleteByDockerIdAndMember_UserPk(DBContainer.getDockerId(), Long.valueOf(userPk));
+                containerRepository.flush();
+                System.out.println("flush.. 해치웠나?");
+                System.out.println();
+                throw new CustomException(CustomErrorCode.NO_CONTAINER);
+            }
+            //DB에도 있고, 실제 컨테이너도 구동중인 경우.
+            return DBContainer.getDockerId();
+        } else {
+            //DB에 정보가 없다면. 컨테이너상 구동중인게 있더라도 해치울 방법이 있나?
+            // -> 생성시 유효시간을 정하면 될듯.
+            throw new CustomException(CustomErrorCode.NO_CONTAINER);
         }
-        // 새 컨테이너 생성 및 저장
-        return createAndStartContainer(userId);
     }
+}
+
+//    @Override
+//    public String findContainerByUserPk(String userId) {
+//        System.out.println();
+//        System.out.println("DockerServiceImpl.findContainerByUserPk");
+//        Optional<Container> dbContainerOpt = containerRepository.findByMemberUserPk(Long.valueOf(userId));
+//        if (dbContainerOpt.isPresent()) {
+//            Container dbContainer = dbContainerOpt.get();
+//            System.out.println("db상 도커 ID : " + dbContainer.getDockerId());
+//            // 실제 Docker 환경에서 컨테이너의 존재 여부를 확인
+//            try {
+//                dockerClient.inspectContainerCmd(dbContainer.getDockerId()).exec();
+//                return dbContainer.getDockerId(); // 컨테이너가 존재하는 경우, ID 반환
+//            } catch (NotFoundException e) {
+////                // 컨테이너가 존재하지 않는 경우, 새 컨테이너를 생성
+////                return recreateAndSaveContainer(userId, dbContainer);
+//                // 컨테이너가 존재하지 않는 경우, 새 컨테이너를 생성하고 DB를 업데이트
+//                //                dbContainer.setDockerId(newContainerId);
+////                containerRepository.save(dbContainer);
+//                return createAndStartContainer(String.valueOf(userId));
+//            }
+//        } else {
+//            // DB에 컨테이너 정보가 없는 경우, 새 컨테이너를 생성
+//            return createAndStartContainer(String.valueOf(userId));
+//        }
+//    }
+
+//    @Transactional
+//    public String recreateAndSaveContainer(String userId, Container dbContainer) {
+//        // 기존 컨테이너 정보 삭제
+//        containerRepository.deleteById(dbContainer.getContainerPk());
+//        // 삭제 확인 로직
+//        if (containerRepository.existsById(dbContainer.getContainerPk())) {
+//            throw new IllegalStateException("삭제되지 않은 컨테이너 정보가 존재합니다.");
+//        }
+//        // 새 컨테이너 생성 및 저장
+//        return createAndStartContainer(userId);
+//    }
 
 //        @Override
 //        public List<String> listUserContainers (String userId){
@@ -144,9 +185,9 @@ public class DockerServiceImpl implements DockerService {
 //                    .map(Container::getId)
 //                    .collect(Collectors.toList());
 //        }
-
-        @Override
-        public void test () {
-            dockerClient.pingCmd().exec();
-        }
-}
+//
+//        @Override
+//        public void test () {
+//            dockerClient.pingCmd().exec();
+//        }
+//}

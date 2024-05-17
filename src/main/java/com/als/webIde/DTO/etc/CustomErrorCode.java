@@ -19,7 +19,8 @@ public enum CustomErrorCode {
     INVALID_FILENAME(HttpStatus.BAD_REQUEST, "파일명은 띄어쓰기 없이 영문자 및 숫자로 20자 이내여야 합니다."),
     DUPLICATE_FILENAME(HttpStatus.BAD_REQUEST,"이미 존재하는 파일명입니다."),
     CONTAINER_CREATE_FAIL(HttpStatus.BAD_REQUEST,"컨테이너 생성에 실패했습니다."),
-    CONTAINER_DELETE_FAIL(HttpStatus.BAD_REQUEST,"컨테이너 종료 및 제거에 실패했습니다.");
+    CONTAINER_DELETE_FAIL(HttpStatus.BAD_REQUEST,"컨테이너 종료 및 제거에 실패했습니다."),
+    NO_CONTAINER(HttpStatus.BAD_REQUEST,"컨테이너 정보가 없습니다.");
 
 
 
