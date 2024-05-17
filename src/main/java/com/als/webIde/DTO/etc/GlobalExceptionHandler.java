@@ -11,7 +11,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NotMyFileException.class)
     protected ResponseEntity<?> NotMyFileException(NotMyFileException e) {
-        String message = "내 파일이 아닙니다.";
+        String message = "파일이 없습니다.";
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("message : " + message);
     }
 
