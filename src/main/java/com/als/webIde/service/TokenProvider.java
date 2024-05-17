@@ -50,7 +50,7 @@ public class TokenProvider {
 
         return Jwts.builder()
                 .setSubject(authentication.getName())
-                .setIssuedAt(new Date())
+                .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(SignatureAlgorithm.HS512, secretKey)
                 .compact();
@@ -62,7 +62,7 @@ public class TokenProvider {
 
         return Jwts.builder()
                 .setSubject(String.valueOf(userId))
-                .setIssuedAt(new Date())
+                .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(SignatureAlgorithm.HS512, secretKey)
                 .compact();
