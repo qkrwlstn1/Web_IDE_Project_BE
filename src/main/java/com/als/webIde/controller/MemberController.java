@@ -2,6 +2,7 @@ package com.als.webIde.controller;
 
 import com.als.webIde.DTO.etc.CustomException;
 import com.als.webIde.DTO.etc.CustomUserDetails;
+import com.als.webIde.DTO.etc.ErrorCode;
 import com.als.webIde.DTO.etc.TokenDto;
 import com.als.webIde.DTO.request.UserId;
 import com.als.webIde.DTO.request.UserInfo;
@@ -14,6 +15,7 @@ import com.als.webIde.domain.entity.MemberSetting;
 import com.als.webIde.domain.entity.MemberSettingId;
 import com.als.webIde.domain.repository.MemberRepository;
 import com.als.webIde.domain.repository.MemberSettingRepository;
+import com.als.webIde.service.DockerService;
 import com.als.webIde.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
@@ -26,6 +28,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.als.webIde.DTO.etc.CustomErrorCode.*;
 
@@ -39,6 +42,7 @@ public class MemberController {
     private final MemberSettingRepository memberSettingRepository;
     private final UserService userService;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final DockerService dockerService;
 
     // 아이디 중복 확인
     @PostMapping("/idcheck")
@@ -80,29 +84,21 @@ public class MemberController {
     public ResponseEntity<Message> login(@RequestBody UserLogin userLogin) {
 
         TokenDto token = new TokenDto("helo","jhele","df");
-        List<Member> memberByUserId = memberRepository.findMemberByUserId(userLogin.getUserId());
-        try{
-            if(memberByUserId.isEmpty()){
-                // 에러 핸들러 설정하기
-                return ResponseEntity.ok(Message.builder().message("등록되지 않은 아이디입니다.").build());
-            }
-            Member member = memberByUserId.get(0);
+        Member member = memberRepository.findMemberByUserId(userLogin.getUserId())
+                .orElseThrow(()-> new CustomException(ERROR_USER));
 
-            log.info("member : {}",member.toString());
 
-            if (!passwordEncoder.matches(userLogin.getPassword(),member.getPassword())){
-                return ResponseEntity.ok(Message.builder().message("비밀번호가 틀렸습니다").build());
-            }else {
-                log.info("여기까지 왔다요");
-            }
-
-            token = userService.login(member.getUserPk(),userLogin.getPassword());
-
+        if (!passwordEncoder.matches(userLogin.getPassword(),member.getPassword())){
+            return ResponseEntity.ok(Message.builder().message("비밀번호가 틀렸습니다").build());
+        }else {
             log.info("여기까지 왔다요");
-        }catch (Exception e){
-            log.info("error : {}",e.getMessage());
         }
 
+        token = userService.login(member.getUserPk(),userLogin.getPassword());
+
+        log.info("여기까지 왔다요");
+
+        dockerService.createAndStartContainer(String.valueOf(member.getUserPk()));
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Authorization","Bearer "+token.getAccessToken());

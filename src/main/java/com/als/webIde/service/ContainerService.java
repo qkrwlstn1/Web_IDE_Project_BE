@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -134,7 +133,6 @@ public class ContainerService {
         return ResponseEntity.ok("파일 삭제 성공");
     }
 
-/////////////////
     //코드 실행 요청시 먼저 코드가 저장 -> 실행되도록 해야함.
     public ResponseEntity<DTO> executeCode(MultipartFile file, String input,Long userPk){
         System.out.println("ContainerService.executeCode");
@@ -164,64 +162,5 @@ public class ContainerService {
             throw new RuntimeException("실패: " + e.getMessage(), e);
         }
     }
-//
-//    /**
-//     * .java 소스 파일을 Docker 볼륨에 저장.
-//     * @param file 업로드된 .java 파일
-//     * @return 파일에서 추출한 클래스 이름
-//     * @throws IOException 파일 저장 오류
-//     */
-//    private String saveSourceFile(MultipartFile file) throws IOException {
-//        String fileName = file.getOriginalFilename();
-//        if (fileName == null || !fileName.endsWith(".java")) {
-//            throw new IllegalArgumentException("java 파일이 아닙니다. 파일명을 확인해주세요.");
-//        }
-//
-//        java.io.File sourceFile = new java.io.File("./data/" + fileName);
-//        try (BufferedWriter writer = new BufferedWriter(new FileWriter(sourceFile))) {
-//            writer.write(new String(file.getBytes()));
-//        }
-//        return fileName.replace(".java", "");
-//    }
-//
-//    /**
-//     * 입력 데이터를 파일에 저장
-//     * @param input 사용자의 입력 문자열
-//     * @throws IOException 파일 저장 오류
-//     */
-//    private void saveInputFile(String input) throws IOException {
-//        java.io.File inputFile = new java.io.File("./data/input.txt");
-//        try (BufferedWriter writer = new BufferedWriter(new FileWriter(inputFile))) {
-//            writer.write(input);
-//            writer.newLine();
-//        }
-//    }
-//
-//    /**
-//     * Docker 컨테이너를 사용하여 Java 코드를 컴파일하고 실행.
-//     * @param className 컴파일할 클래스의 이름
-//     * @return 실행 결과 문자열
-//     * @throws IOException Docker 실행 오류
-//     * @throws InterruptedException 프로세스 대기 오류
-//     */
-//    private String compileAndRunCode(String className) throws IOException, InterruptedException {
-//        ProcessBuilder builder = new ProcessBuilder(
-//                "docker", "exec", compilerContainerName,
-//                "sh", "-c", String.format("javac /app/%s.java && java -cp /app %s < /app/input.txt", className, className)
-//        );                         //첫번쨰 className = 컴파일할 .java 파일 // 두번째 = 실행할 JavaClass이름
-//        builder.redirectErrorStream(true);
-//        Process process = builder.start();
-//
-//        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-//            StringBuilder output = new StringBuilder();
-//            String line;
-//            while ((line = reader.readLine()) != null) {
-//                output.append(line).append("\n");
-//            }
-//            process.waitFor();
-//            return output.toString();
-//        }
-//    }
-
 
 }

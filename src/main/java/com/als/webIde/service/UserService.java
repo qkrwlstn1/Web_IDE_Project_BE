@@ -72,12 +72,9 @@ public class UserService {
 
     public Message checkedUserId(UserId userId){
         //멤버의 아이디를 찾는 서비스
-        List<Member> memberByUserId = memberRepository.findMemberByUserId(userId.getUserId());
+        Member memberByUserId = memberRepository.findMemberByUserId(userId.getUserId())
+                .orElseThrow(()->  new CustomException(CustomErrorCode));
 
-        // 아이디가 없으면 사용할 수 있는 아이디라고 명시
-        if (!memberByUserId.isEmpty()){
-            throw new CustomException(CustomErrorCode);
-        }
         // 아이디가 없으면 사용할 수 없는 아이디라고 명시
         return Message.builder().message("사용할 수 있는 아이디입니다.").build();
     }
