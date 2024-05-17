@@ -12,5 +12,5 @@ public class UserInfoDetails {
     private String userId;
     private String userPassword;
     private String userNickName;
-    private String userTheme;
+    private String userThema;
 }

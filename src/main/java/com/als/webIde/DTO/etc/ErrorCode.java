@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum ErrorCode {
-    UNKNOWN_ERROR(1001, "토큰이 존재하지 않습니다."),
+    UNKNOWN_ERROR(1001, "로그인 후 이용할실 수 있습니다."),
     WRONG_TYPE_TOKEN(1002, "변조된 토큰입니다."),
     EXPIRED_TOKEN(1003, "만료된 토큰입니다."),
     UNSUPPORTED_TOKEN(1004, "변조된 토큰입니다."),

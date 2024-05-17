@@ -40,8 +40,8 @@ public class CustomUserDetails implements UserDetails {
         return userInfoDetails.getUserNickName();
     }
 
-    public String getUserTheme(){
-        return userInfoDetails.getUserTheme();
+    public String getUserThema(){
+        return userInfoDetails.getUserThema();
     }
 
     @Override

@@ -151,6 +151,8 @@ $RECYCLE.BIN/
 HELP.md
 
 .gradle
+./db/
+src/main/resources/application.yml
 
 src/main/resources/application.yml
 
