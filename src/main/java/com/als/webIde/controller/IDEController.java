@@ -8,7 +8,7 @@ import com.als.webIde.domain.repository.MemberRepository;
 
 import com.als.webIde.DTO.etc.DTO;
 
-import com.als.webIde.service.ContainerService;
+import com.als.webIde.service.IDEService;
 import com.als.webIde.service.DockerServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,59 +21,57 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/project")
 @RequiredArgsConstructor
-public class ContainerController {
+public class IDEController {
 
-    private final ContainerService containerService;
+    private final IDEService IDEService;
     private final MemberRepository memberRepository;
     private final DockerServiceImpl dockerService;
 
 
-
-    //FileList갱신
-
-    @GetMapping
-    public ResponseEntity<DTO> getFileList(){
-        long memberPk = getMemberPk();
-        return containerService.getFileList(memberPk);
-    }
-    //선택한 파일 불러오기
-
-    @GetMapping("/{id}")
-    public ResponseEntity<DTO> getCode(@RequestParam("fileId") String Id){
-        long memberPk = getMemberPk();
-        long fileId = Long.parseLong(Id);
-        return containerService.getCode(fileId, memberPk);
-    }
-    // 코드 실행
-
-    @PostMapping("/execute")
-    public ResponseEntity<DTO> executeCode(@RequestParam("file") MultipartFile file,
-                                               @RequestParam("input") String input) {
-        long memberPk = getMemberPk();
-        System.out.println("ContainerController.executeCode");
-        return containerService.executeCode(file, input,memberPk);
-    }
-    //파일 수정
-
-    @PutMapping("/file/{fileId}")
-    public ResponseEntity<DTO> updateFile(@RequestBody FileUpdateDto requestDto){
-        long memberPk = getMemberPk();
-        return containerService.updateFile(memberPk,requestDto);
-    }
     //파일 생성
-
     @PostMapping("/file")
     public ResponseEntity<DTO> createFile(@RequestBody AddFileDto dto ){
         long memberPk = getMemberPk();
         dto.setUserPk(memberPk);
-        return containerService.createFile(dto);
+        return IDEService.createFile(dto);
+    }
+
+    //FileList갱신
+    @GetMapping
+    public ResponseEntity<DTO> getFileList(){
+        long memberPk = getMemberPk();
+        return IDEService.getFileList(memberPk);
+    }
+
+    //선택한 파일 불러오기
+    @GetMapping("/{id}")
+    public ResponseEntity<DTO> getCode(@RequestParam("fileId") String Id){
+        long memberPk = getMemberPk();
+        long fileId = Long.parseLong(Id);
+        return IDEService.getCode(fileId, memberPk);
+    }
+
+    // 코드 실행
+    // 아마 파일 자체가 아니라 텍스트로 받게 되면, 코드 수정 해야함.
+    @PostMapping("/execute")
+    public ResponseEntity<DTO> executeCode(@RequestParam("file") MultipartFile file,
+                                               @RequestParam("input") String input) {
+        long memberPk = getMemberPk();
+        return IDEService.executeCode(file, input, memberPk);
+    }
+
+    //파일 수정
+    @PutMapping("/file/{fileId}")
+    public ResponseEntity<DTO> updateFile(@RequestBody FileUpdateDto requestDto){
+        long memberPk = getMemberPk();
+        return IDEService.updateFile(memberPk,requestDto);
     }
     //파일 삭제
 
     @DeleteMapping("/file/{filePk}")
     public ResponseEntity<String> deleteFile(@RequestParam("filePk") Long filePk) {
         long memberPk = getMemberPk();
-        return containerService.deleteFile(filePk, memberPk);
+        return IDEService.deleteFile(filePk, memberPk);
     }
 
     //로그아웃시 이요청을 보내게 하던가 아니면, 메서드 호출하도록.

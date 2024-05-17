@@ -8,11 +8,9 @@ import com.als.webIde.DTO.response.CodeExecutionDto;
 import com.als.webIde.DTO.response.CodeResponseDto;
 import com.als.webIde.DTO.response.FileListResponseDto;
 import com.als.webIde.domain.entity.File;
-import com.als.webIde.domain.repository.ContainerRepository;
 import com.als.webIde.domain.repository.FileRepository;
 import com.als.webIde.validate.IDEValidator;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,16 +23,12 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class ContainerService {
+public class IDEService {
 
-    private final ContainerRepository containerRepository;
     private final FileRepository fileRepository;
     private final IDEValidator ideValidator;
     private final DockerService dockerService;
 
-
-    @Value("${COMPILER_CONTAINER_NAME:compiler}")
-    private String compilerContainerName;
 
     //파일 생성
     public ResponseEntity<DTO> createFile(AddFileDto addFileDto) {
@@ -103,7 +97,6 @@ public class ContainerService {
         ideValidator.removeFileSuffix(fileName);
 
         File presentFile = ideValidator.getCorrectFile(fileId, userPk);
-//        String beforeFileName = presentFile.getFileTitle(); //이전 파일명.
 
         //사용자가 파일을 수정해서 보내면, 파일의 이름은 기존 파일 명이 될 것이고,
         // 파일 코드내의 파일명(ex. class Main)은 그와 상이 할 수 있다.

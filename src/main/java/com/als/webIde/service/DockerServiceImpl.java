@@ -1,13 +1,14 @@
 package com.als.webIde.service;
 
+import com.als.webIde.DTO.etc.CustomErrorCode;
+import com.als.webIde.DTO.etc.CustomException;
+import com.als.webIde.domain.entity.Container;
 import com.als.webIde.domain.repository.ContainerRepository;
 import com.als.webIde.domain.repository.MemberRepository;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.ExecCreateCmdResponse;
-import com.github.dockerjava.api.exception.ConflictException;
 import com.github.dockerjava.api.exception.NotFoundException;
-import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.core.command.ExecStartResultCallback;
 import lombok.RequiredArgsConstructor;
@@ -17,10 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Base64;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j // 롬복 Logger
 @RequiredArgsConstructor // final 처리
@@ -41,7 +39,7 @@ public class DockerServiceImpl implements DockerService {
 //                    .withCmd("java", "-jar", "your-application.jar")
                     .exec();
 
-            com.als.webIde.domain.entity.Container dbContainer = new com.als.webIde.domain.entity.Container();
+            Container dbContainer = new Container();
             dbContainer.setDockerId(container.getId());
             dbContainer.setMember(memberRepository.findById(Long.parseLong(userId)).orElseThrow(
                     () -> new IllegalArgumentException("Invalid user ID")));
@@ -52,7 +50,7 @@ public class DockerServiceImpl implements DockerService {
             return container.getId();
         } catch (Exception e) {
             log.error("컨테이너 생성에 실패했습니다", e);
-            throw new RuntimeException("컨테이너 실행에 실패", e);
+            throw new CustomException(CustomErrorCode.CONTAINER_CREATE_FAIL);
         }
     }
 
@@ -63,10 +61,9 @@ public class DockerServiceImpl implements DockerService {
         try {
             containerRepository.deleteByDockerId(containerId);
             dockerClient.stopContainerCmd(containerId).exec();
-//            dockerClient.removeContainerCmd(containerId).exec(); //없어도 컨테이너 제거 되는듯
         } catch (Exception e) {
             log.error("컨테이너 종료 및 제거에 실패했습니다.", e);
-            throw new RuntimeException("컨테이너 제거 실패: " + e.getMessage());
+            throw new CustomException(CustomErrorCode.CONTAINER_DELETE_FAIL);
         }
     }
 
@@ -74,10 +71,10 @@ public class DockerServiceImpl implements DockerService {
     public String executeCommand(String containerId, String code, String className, String input) {
         System.out.println("DockerServiceImpl.executeCommand");
         try {
-            // Base64 인코딩된 코드를 파일로 저장
+            // Base64 인코딩된 코드, 입력 데이터를 파일로 저장
             String encodedCode = Base64.getEncoder().encodeToString(code.getBytes());
-            // 입력 데이터를 Base64 인코딩하여 파일로 저장
             String encodedInput = Base64.getEncoder().encodeToString(input.getBytes());
+
             String command = String.format(
                     "mkdir -p /app && echo %s | base64 -d > /app/%s.java && echo %s | base64 -d > /app/input.txt && javac /app/%s.java && java -cp /app %s < /app/input.txt",
                     encodedCode, className, encodedInput, className, className
@@ -99,7 +96,6 @@ public class DockerServiceImpl implements DockerService {
                 System.out.println("Error Stream Output: " + errorOutput);
                 return errorOutput;  // 오류 내용 반환
             }
-
             // 성공적인 실행 결과 반환
             return outputStream.toString();
         } catch (Exception e) {
@@ -108,13 +104,11 @@ public class DockerServiceImpl implements DockerService {
         }
     }
 
-
-
     @Override
     public String findContainerByUserId(String userId) {
-        Optional<com.als.webIde.domain.entity.Container> dbContainerOpt = containerRepository.findByMemberUserPk(Long.valueOf(userId));
+        Optional<Container> dbContainerOpt = containerRepository.findByMemberUserPk(Long.valueOf(userId));
         if (dbContainerOpt.isPresent()) {
-            com.als.webIde.domain.entity.Container dbContainer = dbContainerOpt.get();
+            Container dbContainer = dbContainerOpt.get();
             // 실제 Docker 환경에서 컨테이너의 존재 여부를 확인
             try {
                 dockerClient.inspectContainerCmd(dbContainer.getDockerId()).exec();
@@ -130,7 +124,7 @@ public class DockerServiceImpl implements DockerService {
     }
 
     @Transactional
-    public String recreateAndSaveContainer(String userId, com.als.webIde.domain.entity.Container dbContainer) {
+    public String recreateAndSaveContainer(String userId, Container dbContainer) {
         // 기존 컨테이너 정보 삭제
         containerRepository.deleteById(dbContainer.getContainerPk());
         // 삭제 확인 로직

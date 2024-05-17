@@ -1,8 +1,6 @@
 package com.als.webIde.validate;
 
-import com.als.webIde.DTO.etc.DuplicateFileNameException;
-import com.als.webIde.DTO.etc.FileNameInvalidException;
-import com.als.webIde.DTO.etc.NotMyFileException;
+import com.als.webIde.DTO.etc.*;
 import com.als.webIde.domain.entity.File;
 import com.als.webIde.domain.repository.FileRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +25,7 @@ public class IDEValidator {
     //파일명은 띄어쓰기 없이 영문자, 숫자로 구성 20자 이내.
     public void isValidClassName(String className) {
         if (!className.matches("[a-zA-Z0-9]{1,20}")) {
-            throw new FileNameInvalidException();
+            throw new CustomException(CustomErrorCode.INVALID_FILENAME);
         }
     }
 
@@ -39,7 +37,7 @@ public class IDEValidator {
         for (File file : files) {
             String fileName = file.getFileTitle();
             if (Objects.equals(fileName, fileTitle)) {
-                throw new DuplicateFileNameException();
+                throw new CustomException(CustomErrorCode.DUPLICATE_FILENAME);
             }
         }
     }
@@ -80,7 +78,7 @@ public class IDEValidator {
         if (correctFile != null) {
             return correctFile;
         } else {
-            throw new NotMyFileException();
+            throw new CustomException(CustomErrorCode.NOT_MY_FILE);
         }
     }
 }
