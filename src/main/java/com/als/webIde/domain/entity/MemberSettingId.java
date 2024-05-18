@@ -20,7 +20,7 @@ public class MemberSettingId implements Serializable {
     @Column(name = "user_pk")
     private Long userPk;
 
-     public MemberSettingId(Long userPk){
+    public MemberSettingId(Long userPk){
         this.userPk=userPk;
     }
 
