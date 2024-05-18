@@ -6,7 +6,8 @@ import com.als.webIde.domain.entity.MemberSettingId;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface MemberSettingRepository extends JpaRepository<MemberSetting, MemberSettingId> {
-    List<MemberSetting> findMemberSettingByNickname(String nickName);
+    Optional<MemberSetting> findMemberSettingByNickname(String nickName);
 }
