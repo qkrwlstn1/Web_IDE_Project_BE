@@ -1,6 +1,13 @@
-namespace: krampoline
+namespace: default
 resources:
-  - deployment.yaml
-  - service.yaml
-  - ingress.yaml
   - Mysql.yaml
+  - backend.yaml
+  - nginx.yaml
+  - redis.yaml
+configMapGenerator:
+  - name: nginx
+    files:
+      - configs/default.conf
+  - name: init-db
+    files:
+      - configs/init.sql
