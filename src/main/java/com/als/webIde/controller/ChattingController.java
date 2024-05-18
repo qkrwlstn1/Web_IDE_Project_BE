@@ -18,21 +18,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class ChattingController {
     private final ChatService chatService;
 
-    @MessageMapping("/message")
-    @SendTo("/topic/messages")
-    public String sendMessage(String msg) {
-        System.out.println("msg = " + msg);
-        return msg;
-    }
     @MessageMapping("/chatting")
-    @SendTo("/topic/messages")
+    @SendTo("/chat/server/messages")
     @ResponseBody
     public ChattingMessageResponseDTO sendChatting(ChattingMessageRequestDTO cmr) {
         log.info("start... ChattingMessageRequestDTO = {}",cmr);
         return chatService.sendMessage(cmr);
     }
     @MessageMapping("/enter")
-    @SendTo("/topic/welcome")
+    @SendTo("/chat/server/enter")
     public String enter(ChattingUserInfoRequestDTO cui){
         MemberSetting enterUser = chatService.findMemberSetting(cui.getUserId());//닉네임 꺼내와야지
         log.info("{}님 입장!", enterUser.getNickname());
@@ -40,7 +34,7 @@ public class ChattingController {
         return enterUser.getNickname();
     }
     @MessageMapping("/exit")
-    @SendTo("/topic/bye")
+    @SendTo("/chat/server/exit")
     public String exit(ChattingUserInfoRequestDTO cui){
         MemberSetting exitUser = chatService.findMemberSetting(cui.getUserId());//닉네임 꺼내와야지
         log.info("{}님 퇴장 입장!", exitUser.getNickname());
