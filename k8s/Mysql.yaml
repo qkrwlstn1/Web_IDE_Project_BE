@@ -1,11 +1,69 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+spec:
+  serviceName: mysql
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          # 여러분의 MySQL image 주소를 입력해주세요.
+          image: krmp-d2hub-idock.9rum.cc/dev-test/repo_94537ca461f7  # 예시로 MySQL 5.7 버전 사용
+          env:
+            - name: TZ
+              value: Asia/Seoul
+            - name: MYSQL_ROOT_PASSWORD
+              value: root
+            - name: MYSQL_DATABASE
+              value: krampoline
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: data
+              subPath: mysql
+            - mountPath: /docker-entrypoint-initdb.d
+              name: init-db
+          resources:
+            limits:
+              memory: 1Gi
+          readinessProbe:
+            tcpSocket:
+              port: 3306
+      volumes:
+        - name: init-db
+          configMap:
+            name: init-db
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+---
 apiVersion: v1
 kind: Service
 metadata:
   name: mysql
-  namespace: default
+  annotations:
+    kargo.9rum.cc/app-name: "app_5842b5cf0dc8"
+    kargo.9rum.cc/phase: "dev"
+  labels:
+    app.kubernetes.io/managed-by: "kargocd"
 spec:
+  type: ClusterIP
+  clusterIP: None  # Headless service 설정
+  selector:
+    app: mysql
   ports:
     - port: 3306
       targetPort: 3306
-  selector:
-    app: mysql
