@@ -12,7 +12,7 @@ services:
     volumes:
       - ./data:/app
   db:
-    image: krmp-d2hub-idock.9rum.cc/dev-test/repo_94537ca461f7
+    image: mysql:latest
     platform: linux/x86_64
     restart: always
     ports:
