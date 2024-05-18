@@ -1,0 +1,46 @@
+#spring:
+#  application:
+#    name: webIde
+#  output:
+#    ansi:
+#      enabled: always
+#  datasource:
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#    url: jdbc:mysql://db:3306/als_ide_db?useSSL=false&serverTimezone=Asia/Seoul
+#    username: "user"
+#    password: "!als1234"
+#
+#  jpa:
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.MySQL8Dialect
+#        format-sql: true
+#        show-sql: true
+#    hibernate:
+#      ddl-auto: update  # Change this as needed (create-drop, update)
+#
+#jwt:
+#  secret: b298ce3826d81f25acf1f1aa631637ae21422dd8c1bbc99e50d4d827f7b5bd1350de995baa0ee13255f37d2b39c9d2db4f1b618cc299c8052e6ec7a1c15c1944
+
+spring:
+  application:
+    name: webIde # 애플리케이션 이름
+  output:
+    ansi:
+      enabled: always # ANSI 색상 출력을 항상 활성화
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver # MySQL JDBC 드라이버
+    url: jdbc:mysql://localhost:3308/docker_root? # JDBC URL
+    username: root # 데이터베이스 사용자 이름
+    password: "!db1234" # 데이터베이스 비밀번호
+  jpa:
+    properties:
+      hibernate:
+        show_sql: true # SQL 문을 콘솔에 출력
+        format_sql: true # SQL 문을 포맷하여 출력
+    hibernate:
+      ddl-auto: update # 데이터베이스 스키마 업데이트 전략
+    database-platform: org.hibernate.dialect.MySQLDialect # Hibernate MySQL 방언
+
+jwt:
+  secret: b298ce3826d81f25acf1f1aa631637ae21422dd8c1bbc99e50d4d827f7b5bd1350de995baa0ee13255f37d2b39c9d2db4f1b618cc299c8052e6ec7a1c15c1944 # JWT 비밀 키826d81f25acf1f1aa631637ae21422dd8c1bbc99e50d4d827f7b5bd1350de995baa0ee13255f37d2b39c9d2db4f1b618cc299c8052e6ec7a1c15c1944"
