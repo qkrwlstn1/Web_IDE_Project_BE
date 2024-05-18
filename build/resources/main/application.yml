@@ -30,7 +30,7 @@ spring:
       enabled: always # ANSI 색상 출력을 항상 활성화
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver # MySQL JDBC 드라이버
-    url: jdbc:mysql://localhost:3308/docker_root? # JDBC URL
+    url: jdbc:mysql://localhost:3308/als_ide_db # JDBC URL
     username: root # 데이터베이스 사용자 이름
     password: "!db1234" # 데이터베이스 비밀번호
   jpa:
