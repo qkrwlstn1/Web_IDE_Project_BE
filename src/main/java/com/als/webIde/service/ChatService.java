@@ -15,8 +15,6 @@ public interface ChatService {
 
     ChattingRoom findRoom(Long id);
 
-    MemberSetting findMemberSetting(Long id);
-
     boolean enterUser(Long userId, Long roomId);
     boolean exitUser(Long userId, Long roomId);
 

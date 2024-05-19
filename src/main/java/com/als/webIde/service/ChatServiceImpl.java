@@ -27,10 +27,7 @@ public class ChatServiceImpl implements ChatService{
         return chattingRoomRepository.findById(id).get();
     }
 
-    @Override
-    public MemberSetting findMemberSetting(Long id) {
-        return memberSettingRepository.findById(new MemberSettingId(id)).get();
-    }
+
 
     @Override
     public boolean enterUser(Long userId, Long roomId) {
