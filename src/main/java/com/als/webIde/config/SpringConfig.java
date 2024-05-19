@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
@@ -38,7 +39,7 @@ public class SpringConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable);
         http.cors(AbstractHttpConfigurer::disable);
-
+        //http.formLogin(AbstractHttpConfigurer::disable);
         http.sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         );
@@ -47,7 +48,7 @@ public class SpringConfig {
         http.exceptionHandling(exceptionHandling ->
                 exceptionHandling.authenticationEntryPoint(new CustomAuthenticationEntryPoint()));
         http.authorizeHttpRequests(request ->
-                request.requestMatchers("/api/user/idcheck","/api/user/nicknamecheck","/api/user/signup","/api/user/login",
+                request.requestMatchers(HttpMethod.POST,"/api/user/idcheck","/api/user/nicknamecheck","/api/user/signup","/api/user/login","/api/user/accessToken",
                                 "/chat/**","/","/index.html")
                         .permitAll()
                         .requestMatchers(PathRequest.toStaticResources().atCommonLocations())

@@ -13,6 +13,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+
 @Getter
 @Entity
 @Table(name = "member_setting")
@@ -30,8 +31,8 @@ public class MemberSetting {
     private Member member;
 
     @Builder.Default
-    @Column(name = "Theme", nullable = false)
-    private String theme="white";
+    @Column(name = "Thema", nullable = false)
+    private String thema="white";
 
     @Column(name = "nickname", nullable = false)
     private String nickname;

@@ -1,14 +1,14 @@
 package com.als.webIde.DTO.request;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Setter
 @Getter
+@Setter
 @NoArgsConstructor
-public class ChattingUserInfoRequestDTO {
-    private Long userId;
-    private Long roomId;
+@AllArgsConstructor
+public class RequestUserPassword {
+    private String userPassword;
 }
