@@ -49,8 +49,9 @@ public class SpringConfig {
                 exceptionHandling.authenticationEntryPoint(new CustomAuthenticationEntryPoint()));
         http.authorizeHttpRequests(request ->
                 request.requestMatchers(HttpMethod.POST,"/api/user/idcheck","/api/user/nicknamecheck","/api/user/signup","/api/user/login","/api/user/accessToken",
-                                "/chat/**","/","/index.html")
+                                "/","/index.html")
                         .permitAll()
+                        .requestMatchers("/chat/**").permitAll()
                         .requestMatchers(PathRequest.toStaticResources().atCommonLocations())
                         .permitAll()
                         .anyRequest().authenticated());
