@@ -3,7 +3,7 @@ package com.als.webIde.DTO.response;
 import lombok.Data;
 
 @Data
-public class CodeExecutionDto {
+public class CodeExecutionResponseDto {
 
     private String result;
 }

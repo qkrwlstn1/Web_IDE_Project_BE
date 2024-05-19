@@ -1,47 +1,44 @@
 package com.als.webIde.service;
 
 
+import com.als.webIde.DTO.etc.CustomException;
 import com.als.webIde.DTO.etc.DTO;
 import com.als.webIde.DTO.request.AddFileDto;
+import com.als.webIde.DTO.request.CodeExecutionRequestDto;
 import com.als.webIde.DTO.request.FileUpdateDto;
-import com.als.webIde.DTO.response.CodeExecutionDto;
+import com.als.webIde.DTO.response.CodeExecutionResponseDto;
 import com.als.webIde.DTO.response.CodeResponseDto;
 import com.als.webIde.DTO.response.FileListResponseDto;
 import com.als.webIde.domain.entity.File;
-import com.als.webIde.domain.repository.ContainerRepository;
 import com.als.webIde.domain.repository.FileRepository;
 import com.als.webIde.validate.IDEValidator;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class ContainerService {
+public class IDEService {
 
-    private final ContainerRepository containerRepository;
     private final FileRepository fileRepository;
     private final IDEValidator ideValidator;
     private final DockerService dockerService;
 
-
-    @Value("${COMPILER_CONTAINER_NAME:compiler}")
-    private String compilerContainerName;
 
     //파일 생성
     public ResponseEntity<DTO> createFile(AddFileDto addFileDto) {
         String fileName = addFileDto.getFileName();
         fileName = ideValidator.removeFileSuffix(fileName);
         ideValidator.isValidClassName(fileName);
-        ideValidator.checkDuplicateFileName(fileName, addFileDto.getUserPk());
+        ideValidator.checkDuplicateFileName(fileName, addFileDto.getUserPk(), null);
 
         addFileDto.setFileName(fileName);
         File savedFile = fileRepository.save(addFileDto.toEntity());
@@ -103,7 +100,6 @@ public class ContainerService {
         ideValidator.removeFileSuffix(fileName);
 
         File presentFile = ideValidator.getCorrectFile(fileId, userPk);
-//        String beforeFileName = presentFile.getFileTitle(); //이전 파일명.
 
         //사용자가 파일을 수정해서 보내면, 파일의 이름은 기존 파일 명이 될 것이고,
         // 파일 코드내의 파일명(ex. class Main)은 그와 상이 할 수 있다.
@@ -111,7 +107,7 @@ public class ContainerService {
         // 그것에 맞게 파일명이 수정되도록 해야함.
         String ClassName = ideValidator.extractClassName(fileCode); // 코드중 파일명
         ideValidator.isValidClassName(ClassName); //유효한지 검사
-        ideValidator.checkDuplicateFileName(ClassName,userPk);
+        ideValidator.checkDuplicateFileName(ClassName,userPk, fileId);
 
         //파일명이 바꼈으면, 코드중 클래스명으로 수정.
         if(!Objects.equals(ClassName, fileName)){
@@ -134,33 +130,44 @@ public class ContainerService {
     }
 
     //코드 실행 요청시 먼저 코드가 저장 -> 실행되도록 해야함.
-    public ResponseEntity<DTO> executeCode(MultipartFile file, String input,Long userPk){
+    public ResponseEntity<DTO> executeCode(CodeExecutionRequestDto codeExecutionRequestDto, Long userPk) {
         System.out.println("ContainerService.executeCode");
 
-        try {
-            // 사용자 컨테이너 생성 또는 조회
-            String containerId = dockerService.findContainerByUserId(String.valueOf(userPk));
-            if (containerId == null) {
-                containerId = dockerService.createAndStartContainer(String.valueOf(userPk));
-            }
-            System.out.println("Upk = " + userPk +", conPk = "+ containerId);
+        String code = codeExecutionRequestDto.getFileCode();
+        String className = ideValidator.extractClassName(code);
+        String input = codeExecutionRequestDto.getInput();
+        Long filePk = Long.valueOf(codeExecutionRequestDto.getFileId());
 
-            // 파일 이름에서 클래스 이름 추출
-            String className = file.getOriginalFilename().replace(".java", "");
+        File correctFile = ideValidator.getCorrectFile(filePk, userPk);
+        String codeBefore = correctFile.getContentCd();
 
-            // Java 코드 컴파일 및 실행
-            String code = new String(file.getBytes());
-            String output = dockerService.executeCommand(containerId, code, className, input);
-            System.out.println("output = " + output);
-
-            CodeExecutionDto codeExecutionDto = new CodeExecutionDto();
-            codeExecutionDto.setResult(output);
-            DTO dto = new DTO("성공", codeExecutionDto);
-
-            return ResponseEntity.ok(dto);
-        } catch (Exception e) {
-            throw new RuntimeException("실패: " + e.getMessage(), e);
+        if (!Objects.equals(codeBefore, code)) { //코드가 변경됐다면 파일 수정 후 실행
+            log.info("파일 변경");
+            FileUpdateDto fileUpdateDto = new FileUpdateDto();
+            fileUpdateDto.setFileName(className);
+            fileUpdateDto.setFileCode(code);
+            fileUpdateDto.setFileId(String.valueOf(filePk));
+            updateFile(userPk, fileUpdateDto);
         }
+
+        String containerId;
+        try {
+            containerId = dockerService.findContainerByUserPk(String.valueOf(userPk));
+        } catch (CustomException e) { //DB상이나 실제로든 컨테이너 정보가 없다면.
+            System.out.println("IDEService.executeCode");
+            containerId = dockerService.createAndStartContainer(String.valueOf(userPk));
+        }
+        log.info("executeCommand 전..");
+        // Java 코드 컴파일 및 실행
+        String output = dockerService.executeCommand(containerId, code, className, input);
+        System.out.println("output = " + output);
+
+        CodeExecutionResponseDto codeExecutionResponseDto = new CodeExecutionResponseDto();
+        codeExecutionResponseDto.setResult(output);
+        DTO dto = new DTO("성공", codeExecutionResponseDto);
+
+        return ResponseEntity.ok(dto);
+
     }
 
 }

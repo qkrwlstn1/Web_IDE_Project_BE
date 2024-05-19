@@ -13,4 +13,5 @@ public interface ContainerRepository extends JpaRepository<Container, Long> {
     Optional<Container> findByMemberUserPk(Long userPk); // 메소드 명 변경
 
     void deleteByDockerId(String containerId);
+
 }
