@@ -23,6 +23,9 @@ services:
       MYSQL_DATABASE: als_ide_db # DB 이름
       MYSQL_USER: user # 사용자 이름
       TZ: Asia/Seoul
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
     volumes:
       - ./db/mysql/data:/var/lib/mysql
       - ./db/mysql/config:/etc/mysql/conf.d
