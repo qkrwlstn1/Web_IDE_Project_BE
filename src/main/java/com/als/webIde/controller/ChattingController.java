@@ -1,5 +1,6 @@
 package com.als.webIde.controller;
 
+import com.als.webIde.DTO.etc.CustomUserDetails;
 import com.als.webIde.DTO.request.ChattingMessageRequestDTO;
 import com.als.webIde.DTO.request.ChattingUserInfoRequestDTO;
 import com.als.webIde.DTO.response.ChattingMessageResponseDTO;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -40,5 +42,17 @@ public class ChattingController {
         log.info("{}님 퇴장 입장!", exitUser.getNickname());
         chatService.exitUser(cui.getUserId(), cui.getRoomId());// 방에서 나가라~
         return exitUser.getNickname();
+    }
+    @MessageMapping("/test")
+    @SendTo("/chat/server/test")
+    public CustomUserDetails test(){
+        // SecurityContext가 null인 경우 예외 처리
+        if (SecurityContextHolder.getContext().getAuthentication() == null) {
+            log.error("No authentication data available");
+            throw new IllegalStateException("No authentication data available");
+        }
+        CustomUserDetails details = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        log.info("이거보면 50프로성공 = {}", details.getUserNickName());
+        return details;
     }
 }
