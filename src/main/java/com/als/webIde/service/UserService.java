@@ -41,12 +41,8 @@ public class UserService {
 
     public TokenDto login(Long userId,String password) {
 
-        log.info("서비스에 진입 함 userId : {}", userId);
-
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(userId,password);
-
-        log.info("token의 정보 확인: {}",authenticationToken.getName());
 
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
@@ -62,7 +58,7 @@ public class UserService {
     }
 
     public String reissueAccessToken(String refreshToken) {
-
+        refreshToken = refreshToken.substring(7);
         if(tokenProvider.validateToken(refreshToken)){
             Long userId = tokenProvider.getUserIdFromToken(refreshToken);
             return tokenProvider.reissueAccessToken(userId);
@@ -72,8 +68,11 @@ public class UserService {
 
     public Message checkedUserId(UserId userId){
         //멤버의 아이디를 찾는 서비스
-        Member memberByUserId = memberRepository.findMemberByUserId(userId.getUserId())
-                .orElseThrow(()->  new CustomException(CustomErrorCode));
+        Optional<Member> memberByUserId = memberRepository.findMemberByUserId(userId.getUserId());
+
+        if (!memberByUserId.isEmpty()){
+            throw  new CustomException(INVALID_USERID);
+        }
 
         // 아이디가 없으면 사용할 수 없는 아이디라고 명시
         return Message.builder().message("사용할 수 있는 아이디입니다.").build();
@@ -81,7 +80,7 @@ public class UserService {
 
     public Message checkedUserNickName(UserNickName nickName){
         // 멤버의 닉네임이 있는지 확인
-        Optional<MemberSetting> findNickName = memberSettingRepository.findMemberSettingByNickname(nickName.getUserNickName());
+        Optional<MemberSetting> findNickName = memberSettingRepository.findByNickname(nickName.getUserNickName());
 
 
         if (!findNickName.isEmpty()){
@@ -97,18 +96,17 @@ public class UserService {
         if(!userInfo.getPassword().equals(userInfo.getPasswordConfirm())){
             throw new CustomException(ERROR_PASSWORD);
         }
-        log.info("회원가입 시작!");
+
         Member saveUser = Member.builder()
                 .userId(userInfo.getUserId())
                 .password(passwordEncoder.encode(userInfo.getPassword())).build();
         Member member = memberRepository.save(saveUser);
-        log.info("유저은 : {}",saveUser.getUserId());
+
         MemberSettingId memberSettingId = new MemberSettingId(member.getUserPk());
         MemberSetting saveUserSetting = MemberSetting.builder()
                 .MemberId(memberSettingId)
                 .member(member)
                 .nickname(userInfo.getNickname()).build();
-        log.info("유저의 세팅은 : {}",saveUserSetting.getMemberId());
 
         memberSettingRepository.save(saveUserSetting);
         return Message.builder().message("회원가입 성공").build();

@@ -9,5 +9,5 @@ import java.util.List;
 import java.util.Optional;
 
 public interface MemberSettingRepository extends JpaRepository<MemberSetting, MemberSettingId> {
-    Optional<MemberSetting> findMemberSettingByNickname(String nickName);
+    Optional<MemberSetting> findByNickname(String nickName);
 }

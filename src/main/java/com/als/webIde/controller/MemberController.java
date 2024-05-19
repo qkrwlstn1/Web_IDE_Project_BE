@@ -2,12 +2,8 @@ package com.als.webIde.controller;
 
 import com.als.webIde.DTO.etc.CustomException;
 import com.als.webIde.DTO.etc.CustomUserDetails;
-import com.als.webIde.DTO.etc.ErrorCode;
 import com.als.webIde.DTO.etc.TokenDto;
-import com.als.webIde.DTO.request.UserId;
-import com.als.webIde.DTO.request.UserInfo;
-import com.als.webIde.DTO.request.UserLogin;
-import com.als.webIde.DTO.request.UserNickName;
+import com.als.webIde.DTO.request.*;
 import com.als.webIde.DTO.response.Message;
 import com.als.webIde.DTO.response.ResponseUserInfo;
 import com.als.webIde.domain.entity.Member;
@@ -97,8 +93,12 @@ public class MemberController {
         token = userService.login(member.getUserPk(),userLogin.getPassword());
 
         log.info("여기까지 왔다요");
-
-        dockerService.createAndStartContainer(String.valueOf(member.getUserPk()));
+        try {
+            dockerService.findContainerByUserPk(String.valueOf(member.getUserPk()));
+        } catch (Exception e) {
+            log.info("도커 컨테이너 DB 혹은 실제 구동중인 뭔가 없었음");
+            dockerService.createAndStartContainer(String.valueOf(member.getUserPk()));
+        }
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Authorization","Bearer "+token.getAccessToken());
@@ -120,61 +120,64 @@ public class MemberController {
 
     // 닉네임 중복확인 -> 닉네임의 중복이 아니면 바로 저장할 수 있는 기능 그래서 PUT Method 사용
     @PutMapping("/nicknamecheck")
-    public ResponseEntity<String> changeNickname(@RequestBody UserNickName nickName){
+    public ResponseEntity<Message> changeNickname(@RequestBody UserNickName nickName){
         // 먼저 이이디를 찾아야 함
 
         CustomUserDetails details = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        memberSettingRepository.findMemberSettingByNickname(nickName.getUserNickName()).orElseThrow(() -> new CustomException(INVALID_NICKNAME));
+        // 먼저 이이디를 찾아야 함
+        Optional<MemberSetting> byNickname = memberSettingRepository.findByNickname(nickName.getUserNickName());
+
+        if (!byNickname.isEmpty()){
+            throw new CustomException(INVALID_NICKNAME);
+        }
 
         MemberSetting memberSetting = memberSettingRepository.findById(MemberSettingId.builder().userPk(details.getId()).build()).orElseThrow(() -> new CustomException(ERROR_USER));
 
         MemberSetting member = MemberSetting.builder().MemberId(new MemberSettingId(details.getId()))
-                .nickname(nickName.getUserNickName()).theme(details.getUserThema()).member(memberSetting.getMember()).build();
+                .nickname(nickName.getUserNickName()).thema(details.getUserThema()).member(memberSetting.getMember()).build();
 
         memberSettingRepository.save(member);
 
-        return ResponseEntity.ok("ok");
+        return ResponseEntity.ok(Message.builder().message("사용할 수 있는 닉네임입니다.").build());
     }
 
     // 패스워드 체크하는 부분
     @PostMapping("/passwordcheck")
-    public ResponseEntity<String> checkPassword(String password){
+    public ResponseEntity<Message> checkPassword(@RequestBody RequestUserPassword password){
         // 기존 비밀번호랑 입력 받은 비밀번호가 동일한 지 검사를 해야 한다.
         CustomUserDetails details = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        String checkedPassword = details.getPassword(); // details 에서 비밀번호 받아옴
-
-        if (!passwordEncoder.matches(password,checkedPassword)){
+        if (!passwordEncoder.matches(password.getUserPassword(),details.getPassword())){
             throw new CustomException(ERROR_PASSWORD);
         }
         Member member = memberRepository.findById(details.getId()).orElseThrow(() -> new CustomException(ERROR_USER));
 
         Member createMember = Member.builder().userPk(member.getUserPk())
                 .userId(member.getUserId())
-                .password(password).build();
+                .password(password.getUserPassword()).build();
 
         memberRepository.save(createMember);
-        return ResponseEntity.ok("ok");
+        return ResponseEntity.ok(Message.builder().message("비밀번호가 틀립니다.").build());
     }
 
     // 변경된 비밀번호 입력
     @PutMapping("/passwordcheck")
-    public ResponseEntity<String> changePassword(String password){
+    public ResponseEntity<Message> changePassword(@RequestBody RequestUserPassword password){
         // 기본 비밀번호와 동일한지 확인후 동일하지 않으면, 비밀번호 저장
         CustomUserDetails details = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        String checkedPassword = details.getPassword();
-        if (passwordEncoder.matches(password,checkedPassword)){
+        if (passwordEncoder.matches(password.getUserPassword(),details.getPassword())){
             throw new CustomException(NOT_SAME_PASSWORD);
         }
         Member member = memberRepository.findById(details.getId()).orElseThrow(() -> new CustomException(ERROR_USER));
 
+        String insult = passwordEncoder.encode(password.getUserPassword());
         Member createMember = Member.builder().userPk(member.getUserPk())
                 .userId(member.getUserId())
-                .password(password).build();
+                .password(insult).build();
 
         memberRepository.save(createMember);
-        return ResponseEntity.ok("ok");
+        return ResponseEntity.ok(Message.builder().message("비밀번호가 변경되었습니다.").build());
     }
 }

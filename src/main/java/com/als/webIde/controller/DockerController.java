@@ -41,9 +41,9 @@ public class DockerController {
 //    }
 //
 
-    @GetMapping("/test")
-    public String test() {
-        dockerService.test();
-        return "test";
-    }
+//    @GetMapping("/test")
+//    public String test() {
+//        dockerService.test();
+//        return "test";
+//    }
 }

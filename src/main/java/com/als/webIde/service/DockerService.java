@@ -1,7 +1,5 @@
 package com.als.webIde.service;
 
-import java.util.List;
-
 public interface DockerService {
     /**
      * 유저에게 도커 컨테이너 생성
@@ -16,10 +14,10 @@ public interface DockerService {
      */
     void stopAndRemoveContainer(String containerId);
 
-    String findContainerByUserId(String userId);
+    String findContainerByUserPk(String userId);
 
 //    List<String> listUserContainers(String userId);
-    void test();
+//    void test();
 
     String executeCommand(String containerId, String command, String input, String s);
 
