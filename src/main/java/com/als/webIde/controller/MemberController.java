@@ -97,8 +97,12 @@ public class MemberController {
         token = userService.login(member.getUserPk(),userLogin.getPassword());
 
         log.info("여기까지 왔다요");
-
-//        dockerService.createAndStartContainer(String.valueOf(member.getUserPk()));
+        try {
+            dockerService.findContainerByUserPk(String.valueOf(member.getUserPk()));
+        } catch (Exception e) {
+            log.info("도커 컨테이너 DB 혹은 실제 구동중인 뭔가 없었음");
+            dockerService.createAndStartContainer(String.valueOf(member.getUserPk()));
+        }
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Authorization","Bearer "+token.getAccessToken());

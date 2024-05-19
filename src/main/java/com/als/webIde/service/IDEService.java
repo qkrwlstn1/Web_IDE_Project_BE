@@ -13,6 +13,7 @@ import com.als.webIde.domain.entity.File;
 import com.als.webIde.domain.repository.FileRepository;
 import com.als.webIde.validate.IDEValidator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -144,7 +146,7 @@ public class IDEService {
             fileUpdateDto.setFileName(className);
             fileUpdateDto.setFileCode(code);
             fileUpdateDto.setFileId(String.valueOf(filePk));
-            System.out.println("update전");
+
             updateFile(userPk,fileUpdateDto);
         }
 
@@ -153,11 +155,9 @@ public class IDEService {
             containerId = dockerService.findContainerByUserPk(String.valueOf(userPk));
         } catch (CustomException e) { //DB상이나 실제로든 컨테이너 정보가 없다면.
             System.out.println("IDEService.executeCode");
-            System.out.println("재 생성 실행 메서드 호출 전");
             containerId = dockerService.createAndStartContainer(String.valueOf(userPk));
         }
-
-        System.out.println("executeCommand 전..");
+        log.info("executeCommand 전..");
         // Java 코드 컴파일 및 실행
         String output = dockerService.executeCommand(containerId, code, className, input);
         System.out.println("output = " + output);
