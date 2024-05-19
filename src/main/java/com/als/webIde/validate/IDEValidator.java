@@ -4,6 +4,7 @@ import com.als.webIde.DTO.etc.CustomErrorCode;
 import com.als.webIde.DTO.etc.CustomException;
 import com.als.webIde.domain.entity.File;
 import com.als.webIde.domain.repository.FileRepository;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -34,16 +35,28 @@ public class IDEValidator {
     }
 
     //가지고 있는 파일중 중복되는 파일명이 있는지 확인
-    public void checkDuplicateFileName(String fileTitle, Long userPk) {
+    public void checkDuplicateFileName(String fileTitle, Long userPk, @Nullable Long filePk) {
         //파일을 저장, 생성, 수정, 실행 할때
         //파일명이 기존과 중복된게 있는지 확인해야함
         List<File> files = fileRepository.findAllByMember_UserPk(userPk);
-        for (File file : files) {
-            String fileName = file.getFileTitle();
-            if (Objects.equals(fileName, fileTitle)) {
-                throw new CustomException(CustomErrorCode.DUPLICATE_FILENAME);
+
+        if(filePk ==null){ // 생성 시
+            for (File file : files) {
+                String fileName = file.getFileTitle();
+                if (Objects.equals(fileName, fileTitle)) {
+                    throw new CustomException(CustomErrorCode.DUPLICATE_FILENAME);
+                }
+            }
+        }else{ //수정 시
+            for (File file : files) {
+                String fileName = file.getFileTitle();
+                Long filepk = file.getFilePk();
+                if (Objects.equals(fileName, fileTitle) && !Objects.equals(filepk, filePk)) {
+                    throw new CustomException(CustomErrorCode.DUPLICATE_FILENAME);
+                }
             }
         }
+
     }
 
     // 코드중 파일 명 추출 매서드

@@ -38,7 +38,7 @@ public class IDEService {
         String fileName = addFileDto.getFileName();
         fileName = ideValidator.removeFileSuffix(fileName);
         ideValidator.isValidClassName(fileName);
-        ideValidator.checkDuplicateFileName(fileName, addFileDto.getUserPk());
+        ideValidator.checkDuplicateFileName(fileName, addFileDto.getUserPk(), null);
 
         addFileDto.setFileName(fileName);
         File savedFile = fileRepository.save(addFileDto.toEntity());
@@ -107,7 +107,7 @@ public class IDEService {
         // 그것에 맞게 파일명이 수정되도록 해야함.
         String ClassName = ideValidator.extractClassName(fileCode); // 코드중 파일명
         ideValidator.isValidClassName(ClassName); //유효한지 검사
-        ideValidator.checkDuplicateFileName(ClassName,userPk);
+        ideValidator.checkDuplicateFileName(ClassName,userPk, fileId);
 
         //파일명이 바꼈으면, 코드중 클래스명으로 수정.
         if(!Objects.equals(ClassName, fileName)){
@@ -134,20 +134,20 @@ public class IDEService {
         System.out.println("ContainerService.executeCode");
 
         String code = codeExecutionRequestDto.getFileCode();
-        String className = codeExecutionRequestDto.getFileName().replace(".java", "");
+        String className = ideValidator.extractClassName(code);
         String input = codeExecutionRequestDto.getInput();
         Long filePk = Long.valueOf(codeExecutionRequestDto.getFileId());
 
         File correctFile = ideValidator.getCorrectFile(filePk, userPk);
         String codeBefore = correctFile.getContentCd();
 
-        if(!Objects.equals(codeBefore, code)){ //코드가 변경됐다면 파일 수정 후 실행
+        if (!Objects.equals(codeBefore, code)) { //코드가 변경됐다면 파일 수정 후 실행
+            log.info("파일 변경");
             FileUpdateDto fileUpdateDto = new FileUpdateDto();
             fileUpdateDto.setFileName(className);
             fileUpdateDto.setFileCode(code);
             fileUpdateDto.setFileId(String.valueOf(filePk));
-
-            updateFile(userPk,fileUpdateDto);
+            updateFile(userPk, fileUpdateDto);
         }
 
         String containerId;

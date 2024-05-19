@@ -13,6 +13,8 @@ public enum CustomErrorCode {
     ERROR_PASSWORD(HttpStatus.BAD_REQUEST,"비밀번호가 일치하지 않습니다."),
     ERROR_USER(HttpStatus.BAD_REQUEST,"해당하는 유저가 없습니다."),
     NOT_SAME_PASSWORD(HttpStatus.BAD_REQUEST,"동일한 비밀번호로 변경할 수 없습니다."),
+    INVALID_USERID(HttpStatus.BAD_REQUEST,"이미 존재하는 아이디입니다"),
+
 
     //IDE
     NOT_MY_FILE(HttpStatus.BAD_REQUEST, "파일이 없습니다."),
