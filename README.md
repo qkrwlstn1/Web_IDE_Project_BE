@@ -16,11 +16,11 @@
 |<img src="https://avatars.githubusercontent.com/u/109202222?v=4" width="50" height="50"/>서다영  | FE | 팀원 | https://github.com/savedinstancestate |
 |<img src="https://avatars.githubusercontent.com/u/104208670?v=4" width="50" height="50"/>이수지  | FE | 팀원 | https://github.com/ssssuji |
 
-##  <img src="https://github.com/Kangjunesu/Web_IDE_Project_BE/assets/108870712/bc956c99-a270-4fbd-9245-ab670992f7df" width="30" heght="30"/> FrontEnd 레포지토리
+##  <img src="https://github.com/Kangjunesu/Web_IDE_Project_BE/assets/108870712/6b3433e1-b807-438b-a50a-a3cf065fa1a1" width="30" heght="30"/> FrontEnd 레포지토리
 <a href="https://github.com/goorm-6th-Als/Web_IDE_Project_-FE-"> FE 레포지토리 바로가기
 
 
-## <img src="https://github.com/Kangjunesu/Web_IDE_Project_BE/assets/108870712/eb8caf24-ab1f-440f-8516-c7a059809cb5" width="30" heght="30"/> Notion
+## <img src="https://github.com/Kangjunesu/Web_IDE_Project_BE/assets/108870712/17903fad-379a-4a6f-855b-ba990de1b77a" width="30" heght="30"/> Notion
 <a href="https://www.notion.so/goorm/b567120e6b7f41ea9389210c5d6572ea?pvs=4"> 팀 노션 바로가기
 
 ## 👀 깃 컨벤션
