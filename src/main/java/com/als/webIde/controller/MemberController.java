@@ -43,6 +43,7 @@ public class MemberController {
     // 아이디 중복 확인
     @PostMapping("/idcheck")
     public ResponseEntity<Message> checkedUserId(@RequestBody UserId userId){
+        log.info("아이디 체크 요청이 왔습니다");
         Message message = userService.checkedUserId(userId);
         return ResponseEntity.ok(message);
     }
@@ -50,6 +51,7 @@ public class MemberController {
     // 닉네임 중복 확인
     @PostMapping("/nicknamecheck")
     public ResponseEntity<Message> checkedUserNickName(@RequestBody UserNickName nickName){
+        log.info("닉네임 체크 요청이 왔습니다");
         Message message = userService.checkedUserNickName(nickName);
         return ResponseEntity.ok(message);
     }
@@ -58,6 +60,7 @@ public class MemberController {
     @Transactional
     @PostMapping("/signup")
     public ResponseEntity<Message> signUp(@RequestBody UserInfo userInfo){
+        log.info("회원가입 요청이 왔습니다");
         Message message = userService.signUp(userInfo);
         return ResponseEntity.ok(message);
     }
@@ -65,7 +68,7 @@ public class MemberController {
     // 토큰 재발급
     @PostMapping("/accessToken")
     public ResponseEntity<Message> reissueAccessToken(HttpServletRequest request){
-
+        log.info("토큰 재발급 요청이 왔습니다");
         String refreshToken = request.getHeader("X-Refresh-Token");
         String reissueAccessToken = userService.reissueAccessToken(refreshToken);
 
@@ -78,14 +81,14 @@ public class MemberController {
     // 로그인
     @PostMapping("/login")
     public ResponseEntity<Message> login(@RequestBody UserLogin userLogin) {
-
+        log.info("로그인 요청이 왔습니다");
         TokenDto token = new TokenDto("helo","jhele","df");
         Member member = memberRepository.findMemberByUserId(userLogin.getUserId())
                 .orElseThrow(()-> new CustomException(ERROR_USER));
 
 
         if (!passwordEncoder.matches(userLogin.getPassword(),member.getPassword())){
-            return ResponseEntity.ok(Message.builder().message("비밀번호가 틀렸습니다").build());
+            throw new CustomException(ERROR_PASSWORD);
         }else {
             log.info("여기까지 왔다요");
         }
@@ -114,6 +117,7 @@ public class MemberController {
      */
     @GetMapping("/mypage")
     public ResponseEntity<ResponseUserInfo> userInfo(){
+        log.info("회원 정보 요청이 왔습니다");
         ResponseUserInfo userInfo = userService.userInfo();
         return ResponseEntity.ok().body(userInfo);
     }
@@ -121,6 +125,7 @@ public class MemberController {
     // 닉네임 중복확인 -> 닉네임의 중복이 아니면 바로 저장할 수 있는 기능 그래서 PUT Method 사용
     @PutMapping("/nicknamecheck")
     public ResponseEntity<Message> changeNickname(@RequestBody UserNickName nickName){
+        log.info("닉네임 수정 요청이 왔습니다");
         // 먼저 이이디를 찾아야 함
 
         CustomUserDetails details = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -145,6 +150,7 @@ public class MemberController {
     // 패스워드 체크하는 부분
     @PostMapping("/passwordcheck")
     public ResponseEntity<Message> checkPassword(@RequestBody RequestUserPassword password){
+        log.info("패스워드 확인 요청이 왔습니다");
         // 기존 비밀번호랑 입력 받은 비밀번호가 동일한 지 검사를 해야 한다.
         CustomUserDetails details = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -164,6 +170,7 @@ public class MemberController {
     // 변경된 비밀번호 입력
     @PutMapping("/passwordcheck")
     public ResponseEntity<Message> changePassword(@RequestBody RequestUserPassword password){
+        log.info("패스워드 교체 요청이 왔습니다");
         // 기본 비밀번호와 동일한지 확인후 동일하지 않으면, 비밀번호 저장
         CustomUserDetails details = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
