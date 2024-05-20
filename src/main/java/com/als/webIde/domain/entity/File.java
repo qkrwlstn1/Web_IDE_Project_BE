@@ -26,7 +26,7 @@ public class File {
     @Column(name = "suffix_file", nullable = false)
     private String suffixFile;
 
-    @Column(name = "content_cd")
+    @Column(name = "content_cd", columnDefinition = "TEXT")
     private String contentCd;
 
     @Column(name = "file_title", nullable = false)
