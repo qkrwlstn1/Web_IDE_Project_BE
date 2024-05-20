@@ -83,7 +83,7 @@ public class UserService {
         Optional<MemberSetting> findNickName = memberSettingRepository.findByNickname(nickName.getUserNickName());
 
 
-        if (!findNickName.isEmpty()){
+        if (findNickName.isPresent()){
             // 현재 존재하고 있는 닉네임이면 사용할 수 없은 이름이라고 알림
             throw new CustomException(INVALID_NICKNAME);
         }
@@ -93,9 +93,6 @@ public class UserService {
     }
 
     public Message signUp(UserInfo userInfo){
-        if(!userInfo.getPassword().equals(userInfo.getPasswordConfirm())){
-            throw new CustomException(ERROR_PASSWORD);
-        }
 
         Member saveUser = Member.builder()
                 .userId(userInfo.getUserId())
