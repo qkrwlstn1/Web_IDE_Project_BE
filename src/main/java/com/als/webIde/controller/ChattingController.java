@@ -2,9 +2,7 @@ package com.als.webIde.controller;
 
 import com.als.webIde.DTO.etc.CustomUserDetails;
 import com.als.webIde.DTO.request.ChattingMessageRequestDTO;
-import com.als.webIde.DTO.request.ChattingUserInfoRequestDTO;
 import com.als.webIde.DTO.response.ChattingMessageResponseDTO;
-import com.als.webIde.domain.entity.MemberSetting;
 import com.als.webIde.service.ChatService;
 import com.als.webIde.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
