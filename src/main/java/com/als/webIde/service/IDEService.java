@@ -119,7 +119,7 @@ public class IDEService {
         fileUpdateDto.setFileId(String.valueOf(fileId));
         fileUpdateDto.setFileName(fileName+".java");
         fileUpdateDto.setFileCode(fileCode);
-        DTO dto = new DTO("파일 수정 성공", fileUpdateDto);
+        DTO dto = new DTO("파일 저장 성공", fileUpdateDto);
         return ResponseEntity.ok(dto);
     }
 
