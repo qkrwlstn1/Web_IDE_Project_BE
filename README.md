@@ -105,7 +105,7 @@
 
 
 ## <img src="https://github.com/Kangjunesu/Web_IDE_Project_BE/assets/108870712/277a99af-bef6-486c-a461-5d773f6b9b88" width="30" height="30"/> 아키텍처
-![image](https://github.com/Kangjunesu/Web_IDE_Project_BE/assets/108870712/1125d9a6-c20f-47bb-ae14-d62a1930d4be)
+![image](https://github.com/Kangjunesu/Web_IDE_Project_BE/assets/108870712/757f30f1-5bad-4ef4-bcc4-f3585f30854e)
 
 
 ## <img src="https://github.com/Kangjunesu/Web_IDE_Project_BE/assets/108870712/692cd4fa-6005-492d-b001-3a58b120c408" width="30" height="30"/> 플로우 차트
