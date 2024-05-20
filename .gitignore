@@ -158,4 +158,8 @@ src/main/resources/application.yml
 db/
 build/
 build/**/*.class
+<<<<<<< HEAD
 # End of https://www.toptal.com/developers/gitignore/api/intellij+all,windows,macos
+=======
+# End of https://www.toptal.com/developers/gitignore/api/intellij+all,windows,macos
+>>>>>>> 26aad66062b13e2590d85149347d2ce344a9461b
