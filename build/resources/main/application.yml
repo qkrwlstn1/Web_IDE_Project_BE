@@ -6,7 +6,7 @@
 #      enabled: always
 #  datasource:
 #    driver-class-name: com.mysql.cj.jdbc.Driver
-#    url: jdbc:mysql://db:3306/als_ide_db?useSSL=false&serverTimezone=Asia/Seoul
+#    url: jdbc:mysql://db:3308/als_ide_db?useSSL=false&serverTimezone=Asia/Seoul
 #    username: "user"
 #    password: "!als1234"
 #
@@ -43,7 +43,4 @@ spring:
     database-platform: org.hibernate.dialect.MySQLDialect # Hibernate MySQL 방언
 
 jwt:
-  secret: b298ce3826d81f25acf1f1aa631637ae21422dd8c1bbc99e50d4d827f7b5bd1350de995baa0ee13255f37d2b39c9d2db4f1b618cc299c8052e6ec7a1c15c1944 # JWT 비밀 키826d81f25acf1f1aa631637ae21422dd8c1bbc99e50d4d827f7b5bd1350de995baa0ee13255f37d2b39c9d2db4f1b618cc299c8052e6ec7a1c15c1944
-logging:
-  pattern:
-    dateformat: "yyyy-MM-dd HH:mm:ss.SSSz,Asia/Seoul"
+  secret: b298ce3826d81f25acf1f1aa631637ae21422dd8c1bbc99e50d4d827f7b5bd1350de995baa0ee13255f37d2b39c9d2db4f1b618cc299c8052e6ec7a1c15c1944 # JWT 비밀 키826d81f25acf1f1aa631637ae21422dd8c1bbc99e50d4d827f7b5bd1350de995baa0ee13255f37d2b39c9d2db4f1b618cc299c8052e6ec7a1c15c1944"
