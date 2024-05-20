@@ -1,12 +1,17 @@
 package com.als.webIde.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.*;
 
+@RequiredArgsConstructor
 @Configuration//설정
 @EnableWebSocketMessageBroker// server와 client 간에 양방향 통신
 public class ChattingConfig implements WebSocketMessageBrokerConfigurer, WebSocketConfigurer {
+
+    private final StompHandler stompHandler;
 
     /**
      * 웹소켓 엔드포인트를 등록하는 메서드입니다.
@@ -16,7 +21,7 @@ public class ChattingConfig implements WebSocketMessageBrokerConfigurer, WebSock
         // "/chat" 경로에 웹소켓 엔드포인트를 추가합니다. 이 경로로 웹소켓 연결이 이루어집니다.
         // withSockJS() 메서드를 호출하여 웹소켓이 지원되지 않는 브라우저에서도
         // 연결을 지원하도록 SockJS 프로토콜을 활성화합니다.
-        registry.addEndpoint("/chat").withSockJS();
+        registry.addEndpoint("/chat").setAllowedOriginPatterns("*");
     }
 
     /**
@@ -39,5 +44,10 @@ public class ChattingConfig implements WebSocketMessageBrokerConfigurer, WebSock
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
 
+    }
+
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.interceptors(stompHandler);
     }
 }
