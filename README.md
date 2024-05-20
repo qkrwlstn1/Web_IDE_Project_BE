@@ -108,5 +108,6 @@
 
 
 ## <img src="https://github.com/Kangjunesu/Web_IDE_Project_BE/assets/108870712/c97ef58e-83ea-4152-82a2-6f014331e63d" width="30" heght="30"/> ERD 
-![image](https://github.com/goorm-6th-Als/Web_IDE_Project_BE/assets/108870712/29fefb34-56da-41ef-8b3b-0a816b754308)
+![image](https://github.com/goorm-6th-Als/Web_IDE_Project_BE/assets/96505736/e149f447-be0f-4d26-90a6-c725754dc828)
+
 
