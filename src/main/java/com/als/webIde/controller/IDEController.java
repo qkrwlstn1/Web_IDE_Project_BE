@@ -42,8 +42,8 @@ public class IDEController {
     }
 
     //선택한 파일 불러오기
-    @GetMapping("/{id}")
-    public ResponseEntity<DTO> getCode(@RequestParam("fileId") String Id){
+    @GetMapping("/{fileId}")
+    public ResponseEntity<DTO> getCode(@PathVariable("fileId") String Id){
         long memberPk = getMemberPk();
         long fileId = Long.parseLong(Id);
         return IDEService.getCode(fileId, memberPk);
@@ -65,7 +65,7 @@ public class IDEController {
     //파일 삭제
 
     @DeleteMapping("/file/{filePk}")
-    public ResponseEntity<String> deleteFile(@RequestParam("filePk") Long filePk) {
+    public ResponseEntity<String> deleteFile(@PathVariable("filePk") Long filePk) {
         long memberPk = getMemberPk();
         return IDEService.deleteFile(filePk, memberPk);
     }
