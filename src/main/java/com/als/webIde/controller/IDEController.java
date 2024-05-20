@@ -57,7 +57,7 @@ public class IDEController {
     }
 
     //파일 수정
-    @PutMapping("/file/{fileId}")
+    @PutMapping("/file")
     public ResponseEntity<DTO> updateFile(@RequestBody FileUpdateDto requestDto){
         long memberPk = getMemberPk();
         return IDEService.updateFile(memberPk,requestDto);
