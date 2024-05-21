@@ -14,6 +14,7 @@ import com.github.dockerjava.core.command.ExecStartResultCallback;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayOutputStream;
@@ -30,6 +31,7 @@ public class DockerServiceImpl implements DockerService {
 
     //1. 로그인하면 이 코드 호출 하도록
     @Override
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public String createAndStartContainer(String userId) {
         try {
             // 도커 이미지를 통해 컨테이너 생성
@@ -44,7 +46,7 @@ public class DockerServiceImpl implements DockerService {
             dbContainer.setMember(memberRepository.findById(Long.parseLong(userId)).orElseThrow(
                     () -> new IllegalArgumentException("유효하지 않은 유저")));
             containerRepository.save(dbContainer);
-            containerRepository.flush();
+//            containerRepository.flush();
             // 컨테이너 시작
             dockerClient.startContainerCmd(container.getId()).exec();
             return container.getId();
@@ -108,6 +110,7 @@ public class DockerServiceImpl implements DockerService {
     // 코드 실행 전 DB와 도커 데스크탑상 컨테이너가 동일한지, 유지되고 있는지 확인하고,
     //실행하도록 로직 분리
     @Override
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public String findContainerByUserPk(String userPk) {
         Optional<Container> container = containerRepository.findByMemberUserPk(Long.valueOf(userPk));
 
@@ -123,9 +126,9 @@ public class DockerServiceImpl implements DockerService {
                 // ->DB날리고 재 설정
                 log.info(" DB상에는 있는데, 도커 데스크탑에선 없는 경우.");
                 containerRepository.delete(DBContainer);
-                log.info("플러시전");
-                containerRepository.flush();
-                log.info("flush.. 해치웠나?");
+//                log.info("플러시전");
+//                containerRepository.flush();
+//                log.info("flush.. 해치웠나?");
                 throw new CustomException(CustomErrorCode.NO_CONTAINER);
             }
             //DB에도 있고, 실제 컨테이너도 구동중인 경우.
